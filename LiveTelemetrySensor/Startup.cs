@@ -35,7 +35,6 @@ namespace LiveTelemetrySensor
             services.AddSingleton<SensorPropertiesService>();
             services.AddSingleton<KafkaConsumerService>();
             services.AddSingleton<SensorAlertsService>();
-            services.AddHostedService<SensorAlertsStarter>();
 
             services.AddControllers();
         }

@@ -9,17 +9,18 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
     [ApiController]
     public class SensorAlertsController : Controller
     {
-        public SensorAlertsController(SensorPropertiesService sensorsPropertiesService) 
+        private SensorAlertsService _sensorAlerts;
+        public SensorAlertsController(SensorAlertsService sensorAlertsService) 
         {
+            _sensorAlerts = sensorAlertsService;
         }
         [HttpPut("state")]
         public ActionResult ChangeSensorState([FromBody] RunningState stateToChangeTo)
         {
             
-            //bool success = _cons.ChangeState(stateToChangeTo);
-            //if (success) return Ok();
-            //return BadRequest($"Sensor alerts are already in state {stateToChangeTo}");
-            return Ok();
+            bool success = _sensorAlerts.ChangeState(stateToChangeTo);
+            if (success) return Ok();
+            else return BadRequest("Server is already in state " + stateToChangeTo);
         }
     }
 }

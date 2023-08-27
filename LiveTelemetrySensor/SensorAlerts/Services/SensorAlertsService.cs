@@ -17,6 +17,8 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _kafkaConsumerService = kafkaConsumerService;
             _teleProcessorService = teleProcessor;
             _currentState = RunningState.STOP;
+            IEnumerable<LiveSensor> liveSensors = _sensorProperties.GenerateLiveSensors();
+            _teleProcessorService.AddSensorsToUpdate(liveSensors);
         }
 
         public bool ChangeState(RunningState stateToChangeTo)
@@ -38,14 +40,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
        
         private void StartProccessing()
         {
-            IEnumerable<LiveSensor> liveSensors = _sensorProperties.GenerateLiveSensors();
-            _teleProcessorService.AddSensorsToUpdate(liveSensors);
             _kafkaConsumerService.StartConsumer(_teleProcessorService.ProcessTeleData);
         }
 
         private void StopProccessing()
         {
-
+            _kafkaConsumerService.StopConsumer();
         }
     }
 }
