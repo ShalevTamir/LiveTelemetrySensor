@@ -1,6 +1,5 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Services;
-using LiveTelemetrySensor.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers

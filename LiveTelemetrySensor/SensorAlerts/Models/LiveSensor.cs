@@ -1,6 +1,4 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
-using PdfExtractor.Models;
-using PdfExtractor.Models.Enums;
 using PdfExtractor.Models.Requirement;
 using System;
 

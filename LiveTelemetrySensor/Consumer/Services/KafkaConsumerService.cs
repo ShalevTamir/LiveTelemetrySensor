@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using Microsoft.Extensions.Configuration;
 
 namespace LiveTelemetrySensor.Services

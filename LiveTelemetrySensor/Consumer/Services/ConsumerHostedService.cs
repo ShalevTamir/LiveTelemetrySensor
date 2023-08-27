@@ -1,10 +1,4 @@
-﻿using LiveTelemetrySensor.Services;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace LiveTelemetrySensor.Consumer.Services
+﻿namespace LiveTelemetrySensor.Consumer.Services
 {
     /*
     public class ConsumerHostedService : IHostedService
