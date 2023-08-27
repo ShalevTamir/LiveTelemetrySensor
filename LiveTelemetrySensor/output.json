@@ -1,0 +1,185 @@
+[
+  {
+    "TelemetryParamName": "Altitude",
+    "Requirements": [
+      {
+        "Type": 0,
+        "RequirementParam": {
+          "Value": 5.0
+        }
+      },
+      {
+        "Type": 1,
+        "RequirementParam": {
+          "Value": -6.0,
+          "EndValue": "Infinity"
+        }
+      },
+      {
+        "Type": 2,
+        "RequirementParam": {
+          "Value": "-Infinity",
+          "EndValue": 11.0
+        }
+      }
+    ],
+    "AdditionalRequirement": "hi hello"
+  },
+  {
+    "TelemetryParamName": "Longitude",
+    "Requirements": [
+      {
+        "Type": 0,
+        "RequirementParam": {
+          "Value": -10.0,
+          "EndValue": -10.0
+        }
+      },
+      {
+        "Type": 1,
+        "RequirementParam": {
+          "Value": -10.0,
+          "EndValue": 50.0
+        }
+      },
+      {
+        "Type": 2,
+        "RequirementParam": {
+          "Value": 5.0,
+          "EndValue": 10.0
+        }
+      }
+    ],
+    "AdditionalRequirement": "helloworld"
+  },
+  {
+    "TelemetryParamName": "test",
+    "Requirements": [
+      {
+        "Type": 0,
+        "RequirementParam": {
+          "Value": 5.0
+        }
+      },
+      {
+        "Type": 1,
+        "RequirementParam": {
+          "Value": -6.0,
+          "EndValue": "Infinity"
+        }
+      },
+      {
+        "Type": 2,
+        "RequirementParam": {
+          "Value": "-Infinity",
+          "EndValue": 11.0
+        }
+      }
+    ],
+    "AdditionalRequirement": "hi hello"
+  },
+  {
+    "TelemetryParamName": "test2",
+    "Requirements": [
+      {
+        "Type": 0,
+        "RequirementParam": {
+          "Value": -10.0,
+          "EndValue": -10.0
+        }
+      },
+      {
+        "Type": 1,
+        "RequirementParam": {
+          "Value": -10.0,
+          "EndValue": 50.0
+        }
+      },
+      {
+        "Type": 2,
+        "RequirementParam": {
+          "Value": 5.0,
+          "EndValue": 10.0
+        }
+      }
+    ],
+    "AdditionalRequirement": "helloworld"
+  },
+  {
+    "TelemetryParamName": "hi",
+    "Requirements": [
+      {
+        "Type": 0,
+        "RequirementParam": {
+          "Value": 5.0
+        }
+      },
+      {
+        "Type": 1,
+        "RequirementParam": {
+          "Value": 5.0
+        }
+      },
+      {
+        "Type": 2,
+        "RequirementParam": {
+          "Value": 5.0
+        }
+      }
+    ],
+    "AdditionalRequirement": "hello"
+  },
+  {
+    "TelemetryParamName": "Altitude",
+    "Requirements": [
+      {
+        "Type": 0,
+        "RequirementParam": {
+          "Value": 5.0
+        }
+      },
+      {
+        "Type": 1,
+        "RequirementParam": {
+          "Value": -6.0,
+          "EndValue": "Infinity"
+        }
+      },
+      {
+        "Type": 2,
+        "RequirementParam": {
+          "Value": "-Infinity",
+          "EndValue": 11.0
+        }
+      }
+    ],
+    "AdditionalRequirement": "hi hello"
+  },
+  {
+    "TelemetryParamName": "Longitude",
+    "Requirements": [
+      {
+        "Type": 0,
+        "RequirementParam": {
+          "Value": -10.0,
+          "EndValue": -10.0
+        }
+      },
+      {
+        "Type": 1,
+        "RequirementParam": {
+          "Value": -10.0,
+          "EndValue": 50.0
+        }
+      },
+      {
+        "Type": 2,
+        "RequirementParam": {
+          "Value": 5.0,
+          "EndValue": 10.0
+        }
+      }
+    ],
+    "AdditionalRequirement": "helloworld"
+  }
+]
