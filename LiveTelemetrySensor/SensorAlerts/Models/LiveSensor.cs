@@ -1,10 +1,11 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+using LiveTelemetrySensor.SensorAlerts.Models.Interfaces;
 using PdfExtractor.Models.Requirement;
 using System;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models
 {
-    public class LiveSensor 
+    public class LiveSensor : ISensor<string>
     {
         public readonly string SensedParamName;
         public readonly RequirementModel[] Requirements;
@@ -19,11 +20,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
             CurrentSensorState = SensorState.NEUTRAL;
         }
 
-        /// <summary>
-        /// Senses a change in the live sensor
-        /// </summary>
-        /// <returns>true - if changed state\n
-        /// false - if the current state equals to the given state</returns>
+        
         public bool Sense(string valueToSense)
         {
             double teleValue = double.Parse(valueToSense);
