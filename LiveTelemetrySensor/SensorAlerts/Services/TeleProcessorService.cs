@@ -1,13 +1,8 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
-using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
 using Newtonsoft.Json;
-using PdfExtractor.Models.Enums;
-using PdfExtractor.Models.Requirement;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
