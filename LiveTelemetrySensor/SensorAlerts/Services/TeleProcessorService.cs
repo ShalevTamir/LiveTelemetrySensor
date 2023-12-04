@@ -3,6 +3,8 @@ using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
@@ -18,8 +20,8 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         }
         public void AddSensorsToUpdate(IEnumerable<LiveSensor> liveSensors)
         {
-            foreach (var liveSensor in liveSensors)
-                _liveSensors.Add(liveSensor.SensedParamName.ToLower(),liveSensor);
+            foreach (var liveSensor in liveSensors) 
+                _liveSensors.Add(liveSensor.SensedParamName,liveSensor);
         }
        
         public void ProcessTeleData(string JTeleData)
@@ -31,13 +33,16 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                 string teleParamName = teleParam.Name.ToLower();
                 if (!_liveSensors.ContainsKey(teleParamName)) continue;
                 LiveSensor liveSensor = _liveSensors[teleParamName];
-                bool stateUpdated = liveSensor.Sense(teleParam.Value);
+                bool stateUpdated = liveSensor.Sense(double.Parse(teleParam.Value), telemetryFrame.Parameters);
                 if (stateUpdated)
+                {
                     _communicationService.SendSensorAlert(new SensorAlertDto()
                     {
                         SensorName = liveSensor.SensedParamName,
                         CurrentStatus = liveSensor.CurrentSensorState
                     });
+                    telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
+                }
             }
         }
 

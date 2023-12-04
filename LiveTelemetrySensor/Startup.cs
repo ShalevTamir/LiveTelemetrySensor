@@ -1,6 +1,6 @@
 using LiveTelemetrySensor.SensorAlerts.Services;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
-using LiveTelemetrySensor.Services;
+using LiveTelemetrySensor.Consumer.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +26,8 @@ namespace LiveTelemetrySensor
             services.AddSingleton<SensorPropertiesService>();
             services.AddSingleton<KafkaConsumerService>();
             services.AddSingleton<SensorAlertsService>();
+            services.AddSingleton<AdditionalParser>();
+            services.AddSingleton<RequestsService>();
 
             services.AddControllers();
         }

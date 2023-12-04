@@ -6,8 +6,16 @@
 
   <ItemGroup>
     <PackageReference Include="confluent.kafka" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="PdfExtractorNuget" Version="1.4.0" />
+    <PackageReference Include="Spire.PDF" Version="9.11.4" />
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PdfExtractorNuget">
+      <HintPath>..\..\PdfExtractorNuget\PdfExtractorNuget\bin\Release\netcoreapp3.1\PdfExtractorNuget.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 

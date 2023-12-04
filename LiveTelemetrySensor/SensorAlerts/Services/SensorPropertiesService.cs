@@ -11,10 +11,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
     {
         private readonly string SOURCE_PATH;
         private IConfiguration _configuration;
-        public SensorPropertiesService(IConfiguration configuration) 
+        private AdditionalParser _additionalParser;
+        public SensorPropertiesService(IConfiguration configuration, AdditionalParser additionalParser) 
         {
             SOURCE_PATH = Directory.GetCurrentDirectory().ToString();
             _configuration = configuration;
+            _additionalParser = additionalParser;
         }
         private IEnumerable<SensorProperties> GenerateSensorProperties()
         {
@@ -26,7 +28,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         {
             foreach (var sensor in GenerateSensorProperties())
             {
-                yield return new LiveSensor(sensor.TelemetryParamName,sensor.Requirements,sensor.AdditionalRequirement);
+                yield return new LiveSensor(
+                    sensor.TelemetryParamName.ToLower(),
+                    sensor.Requirements,
+                    _additionalParser.Parse(sensor.AdditionalRequirement)
+                    );
             }
         }
 

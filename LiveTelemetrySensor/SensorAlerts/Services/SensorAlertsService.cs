@@ -1,6 +1,6 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
-using LiveTelemetrySensor.Services;
+using LiveTelemetrySensor.Consumer.Services;
 using System.Collections.Generic;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services

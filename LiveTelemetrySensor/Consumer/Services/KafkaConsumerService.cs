@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 
-namespace LiveTelemetrySensor.Services
+namespace LiveTelemetrySensor.Consumer.Services
 {
     public class KafkaConsumerService
     {
