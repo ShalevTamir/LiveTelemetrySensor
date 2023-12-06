@@ -7,5 +7,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
     {
         public DurationType DurationType { get; set; }
         public RequirementParam RequirementParam { get; set; }
+
+        public Duration(DurationType durationType, RequirementParam requirementParam)
+        {
+            DurationType = durationType;
+            RequirementParam = requirementParam;
+        }
     }
 }

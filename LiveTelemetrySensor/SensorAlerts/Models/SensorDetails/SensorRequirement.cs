@@ -1,5 +1,4 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models.Dtos.SensorRequirement;
-using PdfExtractor.Models.Requirement;
+﻿using PdfExtractor.Models.Requirement;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
 {

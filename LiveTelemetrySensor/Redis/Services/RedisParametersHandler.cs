@@ -1,4 +1,5 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models;
+using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using PdfExtractor.Models.Requirement;
 using System.Collections;
@@ -8,12 +9,11 @@ namespace LiveTelemetrySensor.Redis.Services
 {
     public class RedisParametersHandler
     {
-        //Upon receiving a telmetry frame, cashes the relevant information
         //Includes a method to check if the requirement has been met for the duration - iterates over all cached values
         //Keeps track - if a duration requirement has been met - than only check current sensor requirement 
 
         //Key - parameter name, Value - the corresponding duration
-        private Dictionary<string, Duration> sensorRequirements;
+        private Dictionary<string, Duration> _sensorRequirements;
         public RedisParametersHandler() { }
 
         //Stores all parameters with duration
@@ -28,16 +28,28 @@ namespace LiveTelemetrySensor.Redis.Services
             }
         }
 
+        //Upon receiving a telmetry frame, cashes the relevant information
+        public void ProcessTeleData(TelemetryFrameDto teleFrame)
+        {
+            foreach(var telemetryParameter in teleFrame.Parameters)
+            {
+                if (_sensorRequirements.ContainsKey(telemetryParameter.Name))
+                {
+                    //Cache information
+                }
+            }
+        }
+
         private void InsertDuration(SensorRequirement sensorRequirement)
         {
-            if(!sensorRequirements.ContainsKey(sensorRequirement.ParameterName))
-                sensorRequirements.Add(sensorRequirement.ParameterName, sensorRequirement.Duration);
+            if(!_sensorRequirements.ContainsKey(sensorRequirement.ParameterName))
+                _sensorRequirements.Add(sensorRequirement.ParameterName, sensorRequirement.Duration);
             else
             {
-                RequirementParam currentDurationLength = sensorRequirements[sensorRequirement.ParameterName].RequirementParam;
+                RequirementParam currentDurationLength = _sensorRequirements[sensorRequirement.ParameterName].RequirementParam;
                 RequirementParam updatedDurationLength = sensorRequirement.Duration.RequirementParam;
                 if (currentDurationLength.Value < updatedDurationLength.Value)
-                    sensorRequirements[sensorRequirement.ParameterName] = sensorRequirement.Duration;
+                    _sensorRequirements[sensorRequirement.ParameterName] = sensorRequirement.Duration;
                 
             }
         }

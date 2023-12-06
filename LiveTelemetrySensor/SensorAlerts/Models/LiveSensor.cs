@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
+using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models
 {
