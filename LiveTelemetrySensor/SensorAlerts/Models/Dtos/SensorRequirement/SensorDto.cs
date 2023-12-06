@@ -4,8 +4,8 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.Dtos.SensorRequirement
 {
     public class SensorDto
     {
-        public string parameterName;
-        public RequirementParam requirementParam;
-        public DurationDto duration = null;
+        public string parameter_name { get; set; }
+        public RequirementParamDto requirement_param { get; set; }
+        public DurationDto duration { get; set; }
     }
 }
