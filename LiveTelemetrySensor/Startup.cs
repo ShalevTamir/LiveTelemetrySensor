@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StackExchange.Redis;
+using LiveTelemetrySensor.Redis.Interfaces;
+using LiveTelemetrySensor.Redis.Services;
 
 namespace LiveTelemetrySensor
 {
@@ -28,6 +31,10 @@ namespace LiveTelemetrySensor
             services.AddSingleton<SensorAlertsService>();
             services.AddSingleton<AdditionalParser>();
             services.AddSingleton<RequestsService>();
+            services.AddSingleton<IConnectionMultiplexer>(provider =>
+                ConnectionMultiplexer.Connect(Configuration["Redis:Configuration:ServerAdress"])
+            );
+            services.AddSingleton<RedisCacheService>();
 
             services.AddControllers();
         }

@@ -8,7 +8,5 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.Dtos
         public int FrameId { get; set; }
         public DateTime TimeStamp { get; set; }
         public IEnumerable<TelemetryParameterDto> Parameters { get; set; }
-        
-        
     }
 }

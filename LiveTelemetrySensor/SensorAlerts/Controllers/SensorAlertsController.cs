@@ -1,6 +1,9 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+﻿using LiveTelemetrySensor.Redis.Interfaces;
+using LiveTelemetrySensor.Redis.Services;
+using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
@@ -9,17 +12,21 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
     public class SensorAlertsController : Controller
     {
         private SensorAlertsService _sensorAlerts;
-        public SensorAlertsController(SensorAlertsService sensorAlertsService) 
+        private RedisCacheService _redisCacheService;
+        public SensorAlertsController(SensorAlertsService sensorAlertsService, RedisCacheService redis) 
         {
             _sensorAlerts = sensorAlertsService;
+            _redisCacheService = redis;
         }
         [HttpPut("state")]
         public ActionResult ChangeSensorState([FromBody] RunningState stateToChangeTo)
         {
-            
-            bool success = _sensorAlerts.ChangeState(stateToChangeTo);
-            if (success) return Ok();
-            else return BadRequest("Server is already in state " + stateToChangeTo);
+            Debug.WriteLine("======================================\nCACHE SERVICE\n==================================");
+
+            //bool success = _sensorAlerts.ChangeState(stateToChangeTo);
+            //if (success) return Ok();
+            //else return BadRequest("Server is already in state " + stateToChangeTo);
+            return Ok();
         }
     }
 }
