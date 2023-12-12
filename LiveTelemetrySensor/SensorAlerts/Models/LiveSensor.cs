@@ -9,15 +9,17 @@ using System.Collections.Generic;
 using System.Linq;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
+using LiveTelemetrySensor.Redis.Services;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models
 {
-    public class LiveSensor : ISensor<double, TelemetryParameterDto>
+    public class LiveSensor //: ISensor<double, TelemetryParameterDto>
     {
         public readonly string SensedParamName;
         public readonly IEnumerable<RequirementModel> Requirements;
         public readonly IEnumerable<SensorRequirement> AdditionalRequirements;
         public SensorState CurrentSensorState { get; private set; }
+
 
         public LiveSensor(string sensedParamName, IEnumerable<RequirementModel> requirements, IEnumerable<SensorRequirement> additionalRequirements)
         {
@@ -25,17 +27,16 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
             Requirements = requirements;
             AdditionalRequirements = additionalRequirements;
             CurrentSensorState = SensorState.NEUTRAL;
-        }
 
-        
-        public bool Sense(double valueToSense, IEnumerable<TelemetryParameterDto> parameterValues)
+        }
+        public bool Sense(double valueToSense, Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
         {
             foreach (RequirementModel requirement in Requirements)
             {
                 RequirementParam requirementParam = requirement.RequirementParam;
                 if (requirementParam.RequirementMet(valueToSense))
                 {
-                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(parameterValues))
+                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(UpdateDurationStatus))
                         return false;
 
                     SensorState previousState = CurrentSensorState;
@@ -46,24 +47,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
             return false;
         }
 
-        private bool AdditionalRequirementMet(IEnumerable<TelemetryParameterDto> parameterValues)
+        private bool AdditionalRequirementMet(Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
         {
             foreach(var sensorRequirement in AdditionalRequirements)
-            {
-                TelemetryParameterDto parameter = FindParameter(parameterValues, sensorRequirement.ParameterName);
-                if (parameter != null)
-                {
-                    if (!sensorRequirement.Requirement.RequirementMet(double.Parse(parameter.Value)))
-                        return false;
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("Sensor " +
-                        sensorRequirement.ParameterName + 
-                        " doesn't exist in the frame, and is required by sensor " 
-                        + SensedParamName);
-                }
-            }
+                if (UpdateDurationStatus(sensorRequirement) == DurationStatus.REQUIREMENT_NOT_MET)
+                    return false;
+            
             return true;
         }
 

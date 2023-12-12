@@ -12,6 +12,6 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.Interfaces
         /// <para>true - if changed state</para>
         /// <para>false - if the current state equals to the given state</para>
         /// </returns>
-        bool Sense(SensedValueType valueToSense, IEnumerable<ParameterType> values);
+        bool Sense(params object[] args);
     }
 }

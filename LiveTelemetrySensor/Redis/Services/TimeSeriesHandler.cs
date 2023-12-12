@@ -33,7 +33,7 @@ namespace LiveTelemetrySensor.Redis.Services
             return _commands.Get(seriesName); 
         }
 
-        public void DeleteRange(string seriesName, DateTime from, DateTime to)
+        public void DeleteRange(string seriesName, long from, long to)
         {
             _commands.Del(seriesName, from, to);
         }
@@ -46,6 +46,17 @@ namespace LiveTelemetrySensor.Redis.Services
         public IReadOnlyList<TimeSeriesTuple> GetAllSamples(string key)
         {
             return _commands.Range(key, new TimeStamp("-"), new TimeStamp("+"));
+        }
+
+        public IReadOnlyList<TimeSeriesTuple> GetRange(string key, long from, long to)
+        {
+            return _commands.Range(key, from, to);
+        }
+
+        public bool DurationReached(string key, long duration)
+        {
+            TimeSeriesInformation info = Info(key);
+            return info.LastTimeStamp - info.FirstTimeStamp >= duration;
         }
 
 

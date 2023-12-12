@@ -5,6 +5,7 @@ namespace LiveTelemetrySensor
 {
     public class Program
     {
+        // TODO: add ability to send new sensors through api 
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
