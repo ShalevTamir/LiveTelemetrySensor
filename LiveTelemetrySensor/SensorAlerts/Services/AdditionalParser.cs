@@ -3,6 +3,7 @@ using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PdfExtractor.Models.Requirement;
 using System;
@@ -38,7 +39,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                     string parameterName = JObjSensor[Constants.SENSOR_PARAM_NAME].ToString();
                     JObject requirementParam = JObjSensor[Constants.REQUIREMENT_PARAM_NAME] as JObject;
                     JObject duration = JObjSensor[Constants.DURATION_PARAM_NAME] as JObject;
-                    return new SensorRequirement(parameterName, requirementParam.ParseAsRequirement(), duration.ParseAsDuration());
+                    var sensor = new SensorRequirement(parameterName, requirementParam.ParseAsRequirement(), duration.ParseAsDuration());
+                    Debug.WriteLine(JsonConvert.SerializeObject(sensor));
+                    return sensor;
                 });
             }
             catch(AggregateException ae)

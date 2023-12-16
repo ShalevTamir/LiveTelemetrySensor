@@ -31,13 +31,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         public void ProcessTeleData(string JTeleData)
         {
             var telemetryFrame = JsonConvert.DeserializeObject<TelemetryFrameDto>(JTeleData);
-            _redisCacheHandler.CacheTeleData(telemetryFrame);
             foreach(var teleParam in telemetryFrame.Parameters)
             {
                 string teleParamName = teleParam.Name.ToLower();
                 if (!_liveSensors.ContainsKey(teleParamName)) continue;
                 LiveSensor liveSensor = _liveSensors[teleParamName];
-                bool stateUpdated = liveSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateDurationStatus);
+                bool stateUpdated = liveSensor.Sense(double.Parse(teleParam.Value), telemetryFrame.TimeStamp, _redisCacheHandler.CacheParameter);
                 if (stateUpdated)
                 {
                     _communicationService.SendSensorAlert(new SensorAlertDto()

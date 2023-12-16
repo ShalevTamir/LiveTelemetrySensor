@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);C:\Users\shale\source\repos\PdfExtractorNuget\PdfExtractorNuget\bin\Debug\netcoreapp3.1\PdfExtractorNuget.dll</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="confluent.kafka" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />

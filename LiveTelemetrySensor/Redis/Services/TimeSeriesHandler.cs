@@ -10,6 +10,8 @@ namespace LiveTelemetrySensor.Redis.Services
     {
 
         private ITimeSeriesCommands _commands;
+        public static string REDIS_EARLIEST_SAMPLE = "-";
+        public static string REDIS_LATEST_SAMPLE = "+";
         public TimeSeriesHandler(ITimeSeriesCommands timeSeriesCommands)
         {
             _commands = timeSeriesCommands;
@@ -23,12 +25,12 @@ namespace LiveTelemetrySensor.Redis.Services
         {
             _commands.Create(key, retentionTime, labels, uncompressed, chunkSizeBites, duplicatePolicy);
         }
-        public void Add(string seriesName, DateTime timestamp, double value)
+        public void Add(string seriesName, long timestamp, double value)
         {
             _commands.Add(seriesName, timestamp, value);
         }
 
-        public TimeSeriesTuple GetLastSample(string seriesName)
+        public TimeSeriesTuple GetLastestSample(string seriesName)
         {
             return _commands.Get(seriesName); 
         }
@@ -45,7 +47,7 @@ namespace LiveTelemetrySensor.Redis.Services
 
         public IReadOnlyList<TimeSeriesTuple> GetAllSamples(string key)
         {
-            return _commands.Range(key, new TimeStamp("-"), new TimeStamp("+"));
+            return _commands.Range(key, new TimeStamp(REDIS_EARLIEST_SAMPLE), new TimeStamp(REDIS_LATEST_SAMPLE));
         }
 
         public IReadOnlyList<TimeSeriesTuple> GetRange(string key, long from, long to)
@@ -53,10 +55,29 @@ namespace LiveTelemetrySensor.Redis.Services
             return _commands.Range(key, from, to);
         }
 
-        public bool DurationReached(string key, long duration)
+        public IReadOnlyList<TimeSeriesTuple> GetReverseRange(string key, long from, long to)
+        {
+            return _commands.RevRange(key, from, to);
+        }
+
+        // Returns the range relative to the latest sample - offsets are in milliseconds
+        public IReadOnlyList<TimeSeriesTuple> GetRelativeRange(string key, long fromOffset = 0, long toOffset = 0)
+        {
+            TimeSeriesTuple latestSample = GetLastestSample(key);
+            
+            return _commands.Range(key, latestSample.Time - fromOffset, latestSample.Time - toOffset);
+        }
+
+
+        public bool RetentionReached(string key, long? currentTimestamp = null, long? retentionTime = null)
         {
             TimeSeriesInformation info = Info(key);
-            return info.LastTimeStamp - info.FirstTimeStamp >= duration;
+            retentionTime ??= info.RetentionTime;
+            currentTimestamp ??= info.LastTimeStamp;
+
+            return info.FirstTimeStamp != null &&
+                   currentTimestamp != null &&
+                   currentTimestamp - info.FirstTimeStamp >= retentionTime;
         }
 
 

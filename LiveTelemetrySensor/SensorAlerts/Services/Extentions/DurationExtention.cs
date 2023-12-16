@@ -7,24 +7,27 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Extentions
     public static class DurationExtention
     {
         // Converts to Epoch Time, with null indicating an infinite amount
-        public static long? RetentionTime(this Duration duration)
+        public static long RetentionTime(this Duration duration, long retentionMargin = 0)
         {
             RequirementParam requirement = duration.RequirementParam;
+            long retentionTime;
             if (requirement is RequirementRange)
             {
                 RequirementRange range = (RequirementRange)requirement;
                 // value: numeric, end_value: inf
                 if (range.EndValue == double.PositiveInfinity)
-                    return null;
+                    retentionTime = duration.DurationType.ToMillis(requirement.Value);
                 // value: -inf, end_value: numeric
                 // value: numeric, end_value: numeric
-                return duration.DurationType.ToMillis(range.EndValue);
+                else
+                    retentionTime = duration.DurationType.ToMillis(range.EndValue);
 
             }
             else
             {
-                return duration.DurationType.ToMillis(requirement.Value);
+                retentionTime = duration.DurationType.ToMillis(requirement.Value);
             }
+            return retentionTime + retentionMargin;
         }
     }
 }

@@ -29,14 +29,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
             CurrentSensorState = SensorState.NEUTRAL;
 
         }
-        public bool Sense(double valueToSense, Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
+        public bool Sense(double valueToSense, DateTime timstamp, Action<SensorRequirement, double, DateTime, bool> CacheParameter)
         {
             foreach (RequirementModel requirement in Requirements)
             {
                 RequirementParam requirementParam = requirement.RequirementParam;
                 if (requirementParam.RequirementMet(valueToSense))
                 {
-                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(UpdateDurationStatus))
+                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(CacheParameter))
                         return false;
 
                     SensorState previousState = CurrentSensorState;
@@ -47,9 +47,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
             return false;
         }
 
-        private bool AdditionalRequirementMet(Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
+        private bool AdditionalRequirementMet(Action<SensorRequirement, double, DateTime, bool> CacheParameter)
         {
-            foreach(var sensorRequirement in AdditionalRequirements)
+            foreach(var sensorRequirement in AdditionalRequirements) 
+            { 
+
+            }
                 if (UpdateDurationStatus(sensorRequirement) == DurationStatus.REQUIREMENT_NOT_MET)
                     return false;
             
