@@ -36,9 +36,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
                 return JObjSensors.Select(JObjSensor =>
                 {
-                    string parameterName = JObjSensor[Constants.SENSOR_PARAM_NAME].ToString();
-                    JObject requirementParam = JObjSensor[Constants.REQUIREMENT_PARAM_NAME] as JObject;
-                    JObject duration = JObjSensor[Constants.DURATION_PARAM_NAME] as JObject;
+                    string parameterName = JObjSensor.NullSafeIndexing(Constants.SENSOR_PARAM_NAME).ToString();
+                    JObject requirementParam = (JObject) JObjSensor.NullSafeIndexing(Constants.REQUIREMENT_PARAM_NAME);
+                    JObject duration = (JObject)JObjSensor.NullSafeIndexing(Constants.DURATION_PARAM_NAME);
                     var sensor = new SensorRequirement(parameterName, requirementParam.ParseAsRequirement(), duration.ParseAsDuration());
                     Debug.WriteLine(JsonConvert.SerializeObject(sensor));
                     return sensor;
@@ -47,7 +47,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             catch(AggregateException ae)
             {
                 ae.HandleExceptions(typeof(HttpRequestException));
-                return null;
+                return Enumerable.Empty<SensorRequirement>();
             }
         }
     }

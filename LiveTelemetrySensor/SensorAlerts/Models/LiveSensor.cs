@@ -29,14 +29,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
             CurrentSensorState = SensorState.NEUTRAL;
 
         }
-        public bool Sense(double valueToSense, DateTime timstamp, Action<SensorRequirement, double, DateTime, bool> CacheParameter)
+        public bool Sense(double valueToSense, Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
         {
             foreach (RequirementModel requirement in Requirements)
             {
                 RequirementParam requirementParam = requirement.RequirementParam;
                 if (requirementParam.RequirementMet(valueToSense))
                 {
-                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(CacheParameter))
+                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(UpdateDurationStatus))
                         return false;
 
                     SensorState previousState = CurrentSensorState;
@@ -47,26 +47,25 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
             return false;
         }
 
-        private bool AdditionalRequirementMet(Action<SensorRequirement, double, DateTime, bool> CacheParameter)
+        private bool AdditionalRequirementMet(Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
         {
             foreach(var sensorRequirement in AdditionalRequirements) 
             { 
-
-            }
                 if (UpdateDurationStatus(sensorRequirement) == DurationStatus.REQUIREMENT_NOT_MET)
                     return false;
+            }
             
             return true;
         }
 
-        private TelemetryParameterDto FindParameter(IEnumerable<TelemetryParameterDto> parameterValues, string parameterName)
-        {
-            foreach (var parameter in parameterValues)
-            {
-                if (parameter.Name.ToLower() == parameterName)
-                    return parameter;
-            }
-            return null;
-        }
+        //private TelemetryParameterDto FindParameter(IEnumerable<TelemetryParameterDto> parameterValues, string parameterName)
+        //{
+        //    foreach (var parameter in parameterValues)
+        //    {
+        //        if (parameter.Name.ToLower() == parameterName)
+        //            return parameter;
+        //    }
+        //    return null;
+        //}
     }
 }

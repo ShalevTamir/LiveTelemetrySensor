@@ -3,6 +3,7 @@ using LiveTelemetrySensor.SensorAlerts.Models;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -31,12 +32,15 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         public void ProcessTeleData(string JTeleData)
         {
             var telemetryFrame = JsonConvert.DeserializeObject<TelemetryFrameDto>(JTeleData);
-            foreach(var teleParam in telemetryFrame.Parameters)
+            if (telemetryFrame == null)
+                throw new ArgumentException("Unable to deserialize telemetry frame \n" + JTeleData+"");
+            _redisCacheHandler.CacheTeleData(telemetryFrame);
+            foreach (var teleParam in telemetryFrame.Parameters)
             {
                 string teleParamName = teleParam.Name.ToLower();
                 if (!_liveSensors.ContainsKey(teleParamName)) continue;
                 LiveSensor liveSensor = _liveSensors[teleParamName];
-                bool stateUpdated = liveSensor.Sense(double.Parse(teleParam.Value), telemetryFrame.TimeStamp, _redisCacheHandler.CacheParameter);
+                bool stateUpdated = liveSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateDurationStatus);
                 if (stateUpdated)
                 {
                     _communicationService.SendSensorAlert(new SensorAlertDto()

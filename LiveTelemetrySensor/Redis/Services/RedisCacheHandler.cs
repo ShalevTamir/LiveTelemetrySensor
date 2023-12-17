@@ -5,8 +5,10 @@ using LiveTelemetrySensor.SensorAlerts.Models.Interfaces;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
+using NetTopologySuite.Utilities;
 using NRedisStack.DataTypes;
 using PdfExtractor.Models.Requirement;
+using StackExchange.Redis;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,10 +24,8 @@ namespace LiveTelemetrySensor.Redis.Services
         //private const long RETENTION_MARGIN_IN_MILLIS = 2000;
 
         private RedisCacheService _redisCaheService;
-        public SensorsDurationHandler _sensorsDurationHandler;
         public RedisCacheHandler(RedisCacheService cacheService)
         {
-            _sensorsDurationHandler = new SensorsDurationHandler();
             _redisCaheService = cacheService;
             _redisCaheService.FlushAll();
         }
@@ -37,12 +37,11 @@ namespace LiveTelemetrySensor.Redis.Services
             {
                 foreach (SensorRequirement requirement in sensor.AdditionalRequirements)
                 {
-                    _sensorsDurationHandler.InsertDuration(requirement);
                     if (!_redisCaheService.ContainsKey(requirement.ParameterName.ToLower()))
                     {
-                        _redisCaheService.TimeSeriesHandler.Create(
+                        _redisCaheService.CreateTimeSeries(
                             requirement.ParameterName.ToLower(),
-                            _sensorsDurationHandler.GetDuration(requirement.ParameterName).RetentionTime()
+                            requirement.Duration.RetentionTime()
                             );
                     }
                 }
@@ -53,7 +52,7 @@ namespace LiveTelemetrySensor.Redis.Services
         public void CacheTeleData(TelemetryFrameDto teleFrame)
         {
             foreach (var telemetryParameter in
-                teleFrame.Parameters.Where(param => _sensorsDurationHandler.ContainsParameter(param.Name)))
+                teleFrame.Parameters.Where(param => _redisCaheService.ContainsKey(param.Name.ToLower())))
             {
                 CacheParameter(
                     telemetryParameter.Name,
@@ -63,18 +62,21 @@ namespace LiveTelemetrySensor.Redis.Services
         }
 
         //Checks if the requirement has been met for the duration - iterates over all cached values
-        //if a duration requirement already met - only checks current latest param value to match requirement
+        //If a duration requirement already met - only checks current latest param value to match requirement
 
-        private DurationStatus UpdateDurationStatus(SensorRequirement sensor)
+        public DurationStatus UpdateDurationStatus(SensorRequirement sensor)
         {
-            if (!_sensorsDurationHandler.ContainsParameter(sensor.ParameterName))
+            if (!_redisCaheService.ContainsKey(sensor.ParameterName.ToLower()))
             {
-                ReuploadToRedis(sensor.ParameterName.ToLower());
-                _sensorsDurationHandler.InsertDuration(sensor);
+                ReuploadToRedis(sensor);
+                _redisCaheService.CreateTimeSeries(
+                    sensor.ParameterName.ToLower(),
+                    sensor.Duration.RetentionTime()
+                    );
             }
 
             // TODO: check if user enter 0 minutes, could be problamatic
-            if (_redisCaheService.TimeSeriesHandler.RetentionReached(sensor.ParameterName.ToLower()))
+            if (_redisCaheService.GetStoredObject<RedisTimeSeries>(sensor.ParameterName.ToLower()).RetentionReached())
             {
                 sensor.DurationStatus = CheckCachedData(sensor);
             }
@@ -85,15 +87,19 @@ namespace LiveTelemetrySensor.Redis.Services
             return sensor.DurationStatus;
         }
 
-        private void ReuploadToRedis(string parameterName)
+        private void ReuploadToRedis(SensorRequirement sensor)
         {
-            if (!_redisCaheService.ContainsKey(parameterName))
-                _redisCaheService.TimeSeriesHandler.Create(parameterName);
+            if (!_redisCaheService.ContainsKey(sensor.ParameterName.ToLower()))
+                _redisCaheService.CreateTimeSeries(
+                    sensor.ParameterName.ToLower(),
+                    sensor.Duration.RetentionTime()
+                    );
         }
 
         private DurationStatus CheckCachedData(SensorRequirement sensor)
         {
-            TimeSeriesTuple latestSample = _redisCaheService.TimeSeriesHandler.GetLastestSample(sensor.ParameterName.ToLower());
+            TimeSeriesTuple? latestSample = _redisCaheService.GetStoredObject<RedisTimeSeries>(sensor.ParameterName.ToLower()).GetLastestSample();
+            Debug.Assert(latestSample != null);
             IEnumerable<TimeSeriesTuple> samples = GetSamples(sensor.ParameterName, sensor.Duration.RetentionTime(), latestSample);
             if (sensor.Duration.RequirementParam is RequirementRange durationRequirementRange)
             {
@@ -139,17 +145,16 @@ namespace LiveTelemetrySensor.Redis.Services
 
         private void CacheParameter(string parameterName, TimeSeriesTuple sample)
         {
-            _redisCaheService.TimeSeriesHandler.Add(
-                parameterName.ToLower(), sample.Time, sample.Val
+            _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).Add(
+                sample.Time, sample.Val
                 );
         }
 
         private IEnumerable<TimeSeriesTuple> GetSamples(string parameterName, long retentionLength, TimeSeriesTuple currentSample)
         {
 
-            var earlySamples = _redisCaheService.TimeSeriesHandler.GetReverseRange(
-                parameterName.ToLower(),
-                new TimeStamp(TimeSeriesHandler.REDIS_EARLIEST_SAMPLE),
+            var earlySamples = _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).GetReverseRange(
+                RedisTimeSeries.REDIS_EARLIEST_SAMPLE,
                 currentSample.Time - retentionLength
                 );
 
@@ -162,17 +167,24 @@ namespace LiveTelemetrySensor.Redis.Services
             }
             catch(InvalidOperationException)
             {
+                // Shouldn't get here if RetentionReached is true
                 beforeTimeframe = currentSample.Time - retentionLength;
             }
             var samplesToReturn = new List<TimeSeriesTuple>();
             samplesToReturn.AddRange(
-                _redisCaheService.TimeSeriesHandler.GetRange(
-                    parameterName.ToLower(),
+                _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).GetRange(
                     beforeTimeframe,
-                    new TimeStamp(TimeSeriesHandler.REDIS_LATEST_SAMPLE)
+                    RedisTimeSeries.REDIS_LATEST_SAMPLE
                     )
                 );
             samplesToReturn.Add(currentSample);
+
+            // If RetentionReached is true then the total time length of the samples should be bigger than retention length after insertion of latestDeletedSample
+            TimeSeriesTuple? latestDeletedSample = _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).LatestDeletedSample;
+            if (samplesToReturn.Count >= 2 &&
+                samplesToReturn[samplesToReturn.Count - 1].Time - samplesToReturn[0].Time < retentionLength &&
+                latestDeletedSample != null)
+                samplesToReturn.Insert(0, latestDeletedSample);
 
             return samplesToReturn;
            
