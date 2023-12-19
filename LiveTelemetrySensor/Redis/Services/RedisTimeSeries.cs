@@ -7,6 +7,7 @@ using StackExchange.Redis;
 using System;
 using NRedisTimeSeries;
 using System.Collections.Generic;
+using System.Linq;
 namespace LiveTelemetrySensor.Redis.Services
 {
     public class RedisTimeSeries : IRedisDataType
@@ -30,6 +31,7 @@ namespace LiveTelemetrySensor.Redis.Services
         {
 
             _commands = database.TS();
+            _seriesKey = key;
 
             if (database.KeyExists(key))
             {
@@ -40,19 +42,25 @@ namespace LiveTelemetrySensor.Redis.Services
             else
                 _commands.Create(key, retentionTime, labels, uncompressed, chunkSizeBites, duplicatePolicy);
 
-            _seriesKey = key;
             LatestDeletedSample = null;
         }
 
-        
-        public void Add(long timestamp, double value)
+        public TimeSeriesTuple? NextSampleAfterRetention(long? retention = null, TimeStamp? relativeFromTimestamp = null)
+        {
+            TimeSeriesInformation info = Info();
+            relativeFromTimestamp ??= info.LastTimeStamp;
+            retention ??= info.RetentionTime;
+            var samples = IsValidTimestamp(relativeFromTimestamp) ?
+                GetReverseRange(REDIS_EARLIEST_SAMPLE, relativeFromTimestamp - retention - 1, count : 1) :
+                Enumerable.Empty<TimeSeriesTuple>();
+            return samples.Count() > 0 ? samples.First() : LatestDeletedSample;
+        }
+
+        public void Add(TimeStamp timestamp, double value)
         {
             if (RetentionReached(timestamp))
-            {
-                var samples = GetRange(REDIS_EARLIEST_SAMPLE, timestamp - Info().RetentionTime);
-                LatestDeletedSample = samples.Count > 0 ? samples[samples.Count - 1] : LatestDeletedSample;
-            }
-                
+                LatestDeletedSample = NextSampleAfterRetention(relativeFromTimestamp: timestamp);
+     
             _commands.Add(_seriesKey, timestamp, value);
         }
 
@@ -62,7 +70,7 @@ namespace LiveTelemetrySensor.Redis.Services
         public TimeSeriesTuple? GetFirstSample()
         {
             TimeStamp? firstTimeStamp = Info().FirstTimeStamp;
-            return firstTimeStamp != null ? GetRange(firstTimeStamp, firstTimeStamp)[0] : null;
+            return IsValidTimestamp(firstTimeStamp) ? GetRange(firstTimeStamp, firstTimeStamp)[0] : null;
         }
 
         // O(1)
@@ -72,7 +80,7 @@ namespace LiveTelemetrySensor.Redis.Services
         }
 
         // O(M) - M amount of samples to delete
-        public void DeleteRange(long from, long to)
+        public void DeleteRange(TimeStamp from, TimeStamp to)
         {
             _commands.Del(_seriesKey, from, to);
         }
@@ -90,39 +98,67 @@ namespace LiveTelemetrySensor.Redis.Services
         }
 
         // O(N)
-        public IReadOnlyList<TimeSeriesTuple> GetRange(long from, long to)
+        public IReadOnlyList<TimeSeriesTuple> GetRange(TimeStamp from, TimeStamp to, 
+            bool latest = false, 
+            IReadOnlyCollection<TimeStamp>? filterByTs = null, 
+            (long, long)? filterByValue = null, 
+            long? count = null, 
+            TimeStamp? align = null, 
+            TsAggregation? aggregation = null, 
+            long? timeBucket = null, 
+            TsBucketTimestamps? bt = null, 
+            bool empty = false
+            )
         {
-            return _commands.Range(_seriesKey, from, to);
+            return _commands.Range(_seriesKey, from, to, latest, filterByTs, filterByValue, count, align, aggregation, timeBucket, bt, empty);
         }
 
         // O(N)
-        public IReadOnlyList<TimeSeriesTuple> GetReverseRange(long from, long to)
+        public IReadOnlyList<TimeSeriesTuple> GetReverseRange(TimeStamp from, TimeStamp to, 
+            bool latest = false, 
+            IReadOnlyCollection<TimeStamp>? filterByTs = null, 
+            (long, long)? filterByValue = null, 
+            long? count = null, 
+            TimeStamp? align = null, 
+            TsAggregation? aggregation = null, 
+            long? timeBucket = null, 
+            TsBucketTimestamps? bt = null, 
+            bool empty = false
+            )
         {
-            return _commands.RevRange(_seriesKey, from, to);
+            return _commands.RevRange(_seriesKey, from, to, latest, filterByTs, filterByValue, count, align, aggregation, timeBucket, bt, empty);
         }
 
         // Returns the range relative to the latest sample - offsets are in milliseconds
         // O(N)
-        public IReadOnlyList<TimeSeriesTuple>? GetRelativeRange(long fromOffset = 0, long toOffset = 0)
+        public IReadOnlyList<TimeSeriesTuple>? GetRelativeRange(TimeStamp? fromOffset = null, TimeStamp? toOffset = null)
         {
             TimeSeriesTuple? latestSample = GetLastestSample();
+
+            fromOffset ??= new TimeStamp(0);
+            toOffset ??= new TimeStamp(0);
             
             return latestSample != null ? _commands.Range(_seriesKey, latestSample.Time - fromOffset, latestSample.Time - toOffset) : null;
         }
 
         // O(1)
-        public bool RetentionReached(long? currentTimestamp = null, long? retentionTime = null)
+        public bool RetentionReached(TimeStamp? currentTimestamp = null, TimeStamp? retentionTime = null)
         {
             TimeSeriesInformation info = Info();
             retentionTime ??= info.RetentionTime;
-            currentTimestamp ??= info.LastTimeStamp != null ? (long)info.LastTimeStamp.Value : currentTimestamp;
+            
+            currentTimestamp ??= IsValidTimestamp(info.LastTimeStamp) ? new TimeStamp((long)info.LastTimeStamp.Value) : currentTimestamp;
             TimeStamp? firstTimeStamp = LatestDeletedSample != null ? LatestDeletedSample.Time : info.FirstTimeStamp;
 
-            return firstTimeStamp != null &&
-                   currentTimestamp != null &&
+            return IsValidTimestamp(firstTimeStamp) &&
+                   IsValidTimestamp(currentTimestamp) &&
                    currentTimestamp - firstTimeStamp >= retentionTime;
         }
 
+        private bool IsValidTimestamp(TimeStamp? timestampToCheck)
+        {
+            return timestampToCheck != null && (long)timestampToCheck.Value > 0;
+        }
 
     }
 }

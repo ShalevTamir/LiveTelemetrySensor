@@ -25,8 +25,10 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         public void AddSensorsToUpdate(IEnumerable<LiveSensor> liveSensors)
         {
             foreach (var liveSensor in liveSensors)
+            {
                 _liveSensors.Add(liveSensor.SensedParamName,liveSensor);
-            _redisCacheHandler.AddRelevantSensors(liveSensors);
+                _redisCacheHandler.AddRelevantRequirements(liveSensor);
+            }
         }
        
         public void ProcessTeleData(string JTeleData)

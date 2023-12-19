@@ -10,7 +10,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Extentions
             return (long)(durationLength * durationType.MillisMultipler());
         }
 
-        public static long MillisMultipler(this DurationType durationType)
+        private static long MillisMultipler(this DurationType durationType)
         {
             switch (durationType)
             {

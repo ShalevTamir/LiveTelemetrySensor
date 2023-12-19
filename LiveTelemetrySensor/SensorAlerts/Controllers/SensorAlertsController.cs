@@ -11,11 +11,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
     public class SensorAlertsController : Controller
     {
         private SensorAlertsService _sensorAlerts;
-        private RedisCacheService _redisCacheService;
-        public SensorAlertsController(SensorAlertsService sensorAlertsService, RedisCacheService redis) 
+        public SensorAlertsController(SensorAlertsService sensorAlertsService) 
         {
             _sensorAlerts = sensorAlertsService;
-            _redisCacheService = redis;
         }
         [HttpPut("state")]
         public ActionResult ChangeSensorState([FromBody] RunningState stateToChangeTo)

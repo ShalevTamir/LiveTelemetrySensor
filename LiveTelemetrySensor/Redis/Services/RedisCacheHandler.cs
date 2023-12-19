@@ -31,20 +31,15 @@ namespace LiveTelemetrySensor.Redis.Services
         }
 
         //Stores all parameters with duration
-        public void AddRelevantSensors(IEnumerable<LiveSensor> sensors)
+        public void AddRelevantRequirements(LiveSensor sensor)
         {
-            foreach (var sensor in sensors.Where(sensor => sensor.AdditionalRequirements != null))
+            foreach (SensorRequirement requirement in sensor.AdditionalRequirements)
             {
-                foreach (SensorRequirement requirement in sensor.AdditionalRequirements)
-                {
-                    if (!_redisCaheService.ContainsKey(requirement.ParameterName.ToLower()))
-                    {
-                        _redisCaheService.CreateTimeSeries(
-                            requirement.ParameterName.ToLower(),
-                            requirement.Duration.RetentionTime()
-                            );
-                    }
-                }
+                _redisCaheService.CreateTimeSeries(
+                    requirement.ParameterName.ToLower(),
+                    requirement.Duration.RetentionTime()
+                    );
+                
             }
         }
 
@@ -76,7 +71,8 @@ namespace LiveTelemetrySensor.Redis.Services
             }
 
             // TODO: check if user enter 0 minutes, could be problamatic
-            if (_redisCaheService.GetStoredObject<RedisTimeSeries>(sensor.ParameterName.ToLower()).RetentionReached())
+            if (_redisCaheService.GetStoredObject<RedisTimeSeries>(sensor.ParameterName.ToLower())
+                .RetentionReached(retentionTime: sensor.Duration.RetentionTime()))
             {
                 sensor.DurationStatus = CheckCachedData(sensor);
             }
@@ -103,39 +99,47 @@ namespace LiveTelemetrySensor.Redis.Services
             IEnumerable<TimeSeriesTuple> samples = GetSamples(sensor.ParameterName, sensor.Duration.RetentionTime(), latestSample);
             if (sensor.Duration.RequirementParam is RequirementRange durationRequirementRange)
             {
+                DurationType durationType = sensor.Duration.DurationType;
                 if (durationRequirementRange.Value == double.NegativeInfinity || durationRequirementRange.EndValue == double.PositiveInfinity)
                 {
                     return SamplesMeetRequirement(samples, sensor.Requirement, durationRequirementRange.Value == double.NegativeInfinity);
                 }
                 else
                 {
+                    // TODO: change, getting all values at once even though there is a chance upToValueSamples return REQUIREMENT_NOT_MET
+
                     // Values up to the start value
                     IEnumerable<TimeSeriesTuple> upToValueSamples = 
-                        samples.Where(sample => sample.Time >= latestSample.Time - durationRequirementRange.Value);
+                        samples.Where(
+                            sample => sample.Time > latestSample.Time - durationType.ToMillis(durationRequirementRange.Value)
+                            );
 
-                    // up until value - has to be true
+                    // This will never throw an exception since checked for DurationReached
+                    var complementarySample = samples.Reverse().First(sample => sample.Time <= latestSample.Time - durationType.ToMillis(durationRequirementRange.Value));
+                    // Comlements to the entire required duration
+                    upToValueSamples = upToValueSamples.Prepend(complementarySample);
+
+                    // Up until value - has to be true
                     if (SamplesMeetRequirement(upToValueSamples, sensor.Requirement, false) == DurationStatus.REQUIREMENT_NOT_MET)
                         return DurationStatus.REQUIREMENT_NOT_MET;
 
 
                     // Values above the start value up to the end value
                     IEnumerable<TimeSeriesTuple> upToEndValueSamples =
-                        samples.Where(sample => sample.Time <= latestSample.Time - durationRequirementRange.Value);
+                        samples.Where(
+                            sample => sample.Time < latestSample.Time - durationType.ToMillis(durationRequirementRange.Value)
+                            );
 
-                    // value to end value - can't all be true
+                    // Value to end value - can't all be true
                     return SamplesMeetRequirement(upToEndValueSamples, sensor.Requirement, true);
                 }
-
             }
             else
             {
                 return SamplesMeetRequirement(samples, sensor.Requirement, false);
             }
-
         }
-
         
-
         private DurationStatus SamplesMeetRequirement(IEnumerable<TimeSeriesTuple> samples, RequirementParam requirement, bool reverseRequirement)
         {
             bool requirementBroken = samples.Any(sample => !requirement.RequirementMet(sample.Val));
@@ -152,39 +156,18 @@ namespace LiveTelemetrySensor.Redis.Services
 
         private IEnumerable<TimeSeriesTuple> GetSamples(string parameterName, long retentionLength, TimeSeriesTuple currentSample)
         {
-
-            var earlySamples = _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).GetReverseRange(
-                RedisTimeSeries.REDIS_EARLIEST_SAMPLE,
-                currentSample.Time - retentionLength
+            var redisTimeSeries = _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower());
+            IEnumerable<TimeSeriesTuple> samplesToReturn = redisTimeSeries.GetRange(
+                currentSample.Time - retentionLength,
+                RedisTimeSeries.REDIS_LATEST_SAMPLE
                 );
 
-            long beforeTimeframe;
-            try
-            {
-                TimeSeriesTuple latestBeforeRetention = earlySamples.First(sample => sample.Time < currentSample.Time - retentionLength);
-                beforeTimeframe = latestBeforeRetention.Time;
-
-            }
-            catch(InvalidOperationException)
-            {
-                // Shouldn't get here if RetentionReached is true
-                beforeTimeframe = currentSample.Time - retentionLength;
-            }
-            var samplesToReturn = new List<TimeSeriesTuple>();
-            samplesToReturn.AddRange(
-                _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).GetRange(
-                    beforeTimeframe,
-                    RedisTimeSeries.REDIS_LATEST_SAMPLE
-                    )
-                );
-            samplesToReturn.Add(currentSample);
-
-            // If RetentionReached is true then the total time length of the samples should be bigger than retention length after insertion of latestDeletedSample
-            TimeSeriesTuple? latestDeletedSample = _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).LatestDeletedSample;
-            if (samplesToReturn.Count >= 2 &&
-                samplesToReturn[samplesToReturn.Count - 1].Time - samplesToReturn[0].Time < retentionLength &&
-                latestDeletedSample != null)
-                samplesToReturn.Insert(0, latestDeletedSample);
+            var nextSampleAfterRetnention = redisTimeSeries.NextSampleAfterRetention(retentionLength);
+            // If RetentionReached is true, nextSampleAfterRetention shouldn't be null and the total time length of the samples should be bigger than retention length after insertion of latestDeletedSample
+            if (nextSampleAfterRetnention != null)
+                samplesToReturn = samplesToReturn.Prepend(nextSampleAfterRetnention);
+                
+            
 
             return samplesToReturn;
            

@@ -24,7 +24,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _requestsService = requestService;
         }
 
-        public IEnumerable<SensorRequirement> Parse(string additionalText)
+        public SensorRequirement[] Parse(string additionalText)
         {
             try
             { 
@@ -42,12 +42,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                     var sensor = new SensorRequirement(parameterName, requirementParam.ParseAsRequirement(), duration.ParseAsDuration());
                     Debug.WriteLine(JsonConvert.SerializeObject(sensor));
                     return sensor;
-                });
+                }).ToArray();
             }
             catch(AggregateException ae)
             {
                 ae.HandleExceptions(typeof(HttpRequestException));
-                return Enumerable.Empty<SensorRequirement>();
+                return new SensorRequirement[] { };
             }
         }
     }
