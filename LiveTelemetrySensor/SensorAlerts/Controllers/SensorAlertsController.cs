@@ -1,7 +1,9 @@
 ﻿using LiveTelemetrySensor.Redis.Services;
+using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Diagnostics;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
@@ -21,6 +23,21 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             bool success = _sensorAlerts.ChangeState(stateToChangeTo);
             if (success) return Ok();
             else return BadRequest("Server is already in state " + stateToChangeTo);
+        }
+
+        [HttpPost("add-sensor")]
+        public ActionResult ChangeSensorState([FromBody] DirectSensorDto directSensorDto)
+        {
+            try
+            {
+                _sensorAlerts.AddDirectSensor(directSensorDto.SensorName, directSensorDto.AdditionalRequirements);
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            
+            return Ok();
         }
     }
 }

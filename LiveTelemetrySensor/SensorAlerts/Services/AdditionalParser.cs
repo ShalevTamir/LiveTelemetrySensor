@@ -39,7 +39,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                     string parameterName = JObjSensor.NullSafeIndexing(Constants.SENSOR_PARAM_NAME).ToString();
                     JObject requirementParam = (JObject) JObjSensor.NullSafeIndexing(Constants.REQUIREMENT_PARAM_NAME);
                     JObject duration = (JObject)JObjSensor.NullSafeIndexing(Constants.DURATION_PARAM_NAME);
-                    var sensor = new SensorRequirement(parameterName, requirementParam.ParseAsRequirement(), duration.ParseAsDuration());
+                    var sensor = new SensorRequirement(
+                        parameterName,
+                        requirementParam.ParseAsRequirement(),
+                        duration == null ? null : duration.ParseAsDuration()
+                        );
                     Debug.WriteLine(JsonConvert.SerializeObject(sensor));
                     return sensor;
                 }).ToArray();

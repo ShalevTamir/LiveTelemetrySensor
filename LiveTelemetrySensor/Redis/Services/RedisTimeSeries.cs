@@ -8,6 +8,7 @@ using System;
 using NRedisTimeSeries;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 namespace LiveTelemetrySensor.Redis.Services
 {
     public class RedisTimeSeries : IRedisDataType
@@ -45,20 +46,28 @@ namespace LiveTelemetrySensor.Redis.Services
             LatestDeletedSample = null;
         }
 
+        // O(1)
+        public bool TimestampAboveOrEqualsOffset(TimeStamp timeStamp, long offset)
+        {
+            var firstTimestamp = LatestDeletedSample != null ? LatestDeletedSample.Time : Info().FirstTimeStamp;
+            Debug.Assert(firstTimestamp != null);
+            return timeStamp - firstTimestamp >= offset;
+        }
+
         public TimeSeriesTuple? NextSampleAfterRetention(long? retention = null, TimeStamp? relativeFromTimestamp = null)
         {
             TimeSeriesInformation info = Info();
             relativeFromTimestamp ??= info.LastTimeStamp;
             retention ??= info.RetentionTime;
             var samples = IsValidTimestamp(relativeFromTimestamp) ?
-                GetReverseRange(REDIS_EARLIEST_SAMPLE, relativeFromTimestamp - retention - 1, count : 1) :
+                GetRange(REDIS_EARLIEST_SAMPLE, relativeFromTimestamp - retention - 1) :
                 Enumerable.Empty<TimeSeriesTuple>();
-            return samples.Count() > 0 ? samples.First() : LatestDeletedSample;
+            return samples.Count() > 0 ? samples.Last() : LatestDeletedSample;
         }
 
         public void Add(TimeStamp timestamp, double value)
         {
-            if (RetentionReached(timestamp))
+            if (RetentionReached(currentTimestamp: timestamp))
                 LatestDeletedSample = NextSampleAfterRetention(relativeFromTimestamp: timestamp);
      
             _commands.Add(_seriesKey, timestamp, value);
@@ -70,7 +79,7 @@ namespace LiveTelemetrySensor.Redis.Services
         public TimeSeriesTuple? GetFirstSample()
         {
             TimeStamp? firstTimeStamp = Info().FirstTimeStamp;
-            return IsValidTimestamp(firstTimeStamp) ? GetRange(firstTimeStamp, firstTimeStamp)[0] : null;
+            return IsValidTimestamp(firstTimeStamp) ? GetRange(firstTimeStamp, firstTimeStamp, count: 1).First() : null;
         }
 
         // O(1)
@@ -145,9 +154,9 @@ namespace LiveTelemetrySensor.Redis.Services
         public bool RetentionReached(TimeStamp? currentTimestamp = null, TimeStamp? retentionTime = null)
         {
             TimeSeriesInformation info = Info();
+
             retentionTime ??= info.RetentionTime;
-            
-            currentTimestamp ??= IsValidTimestamp(info.LastTimeStamp) ? new TimeStamp((long)info.LastTimeStamp.Value) : currentTimestamp;
+            currentTimestamp ??= IsValidTimestamp(info.LastTimeStamp) ? info.LastTimeStamp : currentTimestamp;
             TimeStamp? firstTimeStamp = LatestDeletedSample != null ? LatestDeletedSample.Time : info.FirstTimeStamp;
 
             return IsValidTimestamp(firstTimeStamp) &&

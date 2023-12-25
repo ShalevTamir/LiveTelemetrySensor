@@ -31,20 +31,32 @@ namespace LiveTelemetrySensor.SensorAlerts.Models
         }
         public bool Sense(double valueToSense, Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
         {
-            foreach (RequirementModel requirement in Requirements)
+            if (Requirements.Count() == 0)
             {
-                RequirementParam requirementParam = requirement.RequirementParam;
-                if (requirementParam.RequirementMet(valueToSense))
+                return UpdateSensorState(AdditionalRequirementMet(UpdateDurationStatus) ? SensorState.INVALID : SensorState.NEUTRAL);
+            }
+            else
+            {
+                foreach (RequirementModel requirement in Requirements)
                 {
-                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(UpdateDurationStatus))
-                        return false;
+                    RequirementParam requirementParam = requirement.RequirementParam;
+                    if (requirementParam.RequirementMet(valueToSense))
+                    {
+                        if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(UpdateDurationStatus))
+                            return false;
 
-                    SensorState previousState = CurrentSensorState;
-                    CurrentSensorState = Enum.Parse<SensorState>(requirement.Type.ToString());
-                    return previousState != CurrentSensorState;
+                        return UpdateSensorState(Enum.Parse<SensorState>(requirement.Type.ToString()));
+                    }
                 }
             }
             return false;
+        }
+
+        private bool UpdateSensorState(SensorState newState)
+        {
+            SensorState previousState = CurrentSensorState;
+            CurrentSensorState = newState;
+            return previousState != CurrentSensorState;
         }
 
         private bool AdditionalRequirementMet(Func<SensorRequirement, DurationStatus> UpdateDurationStatus)

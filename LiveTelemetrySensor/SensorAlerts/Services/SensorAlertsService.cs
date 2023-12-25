@@ -7,18 +7,23 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 {
     public class SensorAlertsService
     {
-        private SensorPropertiesService _sensorProperties;
+        private LiveSensorFactory _liveSensorFactory;
         private KafkaConsumerService _kafkaConsumerService;
         private TeleProcessorService _teleProcessorService;
         private RunningState _currentState;
-        public SensorAlertsService(SensorPropertiesService sensorsProperties,KafkaConsumerService kafkaConsumerService, TeleProcessorService teleProcessor) 
+        public SensorAlertsService(LiveSensorFactory sensorsProperties,KafkaConsumerService kafkaConsumerService, TeleProcessorService teleProcessor) 
         {
-            _sensorProperties = sensorsProperties;
+            _liveSensorFactory = sensorsProperties;
             _kafkaConsumerService = kafkaConsumerService;
             _teleProcessorService = teleProcessor;
             _currentState = RunningState.STOP;
-            IEnumerable<LiveSensor> liveSensors = _sensorProperties.GenerateLiveSensors();
+            IEnumerable<LiveSensor> liveSensors = _liveSensorFactory.BuildLiveSensors();
             _teleProcessorService.AddSensorsToUpdate(liveSensors);
+        }
+
+        public void AddDirectSensor(string sensorName, string additionalRequirements)
+        {
+            _teleProcessorService.AddSensorToUpdate(_liveSensorFactory.BuildLiveSensor(sensorName, additionalRequirements));
         }
 
         public bool ChangeState(RunningState stateToChangeTo)

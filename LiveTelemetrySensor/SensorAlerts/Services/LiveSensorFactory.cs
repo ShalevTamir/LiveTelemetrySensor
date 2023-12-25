@@ -5,27 +5,28 @@ using PdfExtractor.Models.Requirement;
 using PdfExtractor.Services;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
-    public class SensorPropertiesService
+    public class LiveSensorFactory
     {
         private readonly string SOURCE_PATH;
         private IConfiguration _configuration;
         private AdditionalParser _additionalParser;
-        public SensorPropertiesService(IConfiguration configuration, AdditionalParser additionalParser) 
+        public LiveSensorFactory(IConfiguration configuration, AdditionalParser additionalParser) 
         {
             SOURCE_PATH = Directory.GetCurrentDirectory().ToString();
             _configuration = configuration;
             _additionalParser = additionalParser;
         }
-        private IEnumerable<SensorProperties> GenerateSensorProperties()
+        private IEnumerable<SensorProperties> BuildSensorProperties()
         {
             string documentName = _configuration["SensorsProperties:DocumentName"];
             return TableProccessor.Instance.ProccessTable($"{SOURCE_PATH}/SensorAlerts/Documents/{documentName}.pdf");
         }
 
-        private IEnumerable<SensorProperties> GenerateTestProperties()
+        private IEnumerable<SensorProperties> BuildTestProperties()
         {
             return new[]
             {
@@ -36,10 +37,19 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             };
         }
 
-
-        public IEnumerable<LiveSensor> GenerateLiveSensors()
+        public LiveSensor BuildLiveSensor(string sensorName, string additionalRequirement, IEnumerable<RequirementModel>? requirements = null)
         {
-            foreach (var sensor in GenerateTestProperties())
+
+            return new LiveSensor(
+                sensorName.ToLower(), 
+                requirements == null ? Enumerable.Empty<RequirementModel>() : requirements,
+                _additionalParser.Parse(additionalRequirement)
+                );
+        }
+
+        public IEnumerable<LiveSensor> BuildLiveSensors()
+        {
+            foreach (var sensor in BuildTestProperties())
             {
                 yield return new LiveSensor(
                     sensor.TelemetryParamName.ToLower(),

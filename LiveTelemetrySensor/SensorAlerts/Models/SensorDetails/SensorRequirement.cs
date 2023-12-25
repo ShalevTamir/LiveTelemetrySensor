@@ -7,11 +7,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
     {
         public readonly string ParameterName;
         public readonly RequirementParam Requirement;
-        public readonly Duration Duration;
+        public readonly Duration? Duration;
         public DurationStatus DurationStatus { get; set; }
 
 
-        public SensorRequirement(string parameterName, RequirementParam requirement, Duration duration)
+        public SensorRequirement(string parameterName, RequirementParam requirement, Duration? duration = null)
         {
             ParameterName = parameterName;
             Requirement = requirement;

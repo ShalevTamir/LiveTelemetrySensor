@@ -25,7 +25,7 @@ namespace LiveTelemetrySensor
         {
             services.AddSingleton<CommunicationService>();
             services.AddSingleton<TeleProcessorService>();
-            services.AddSingleton<SensorPropertiesService>();
+            services.AddSingleton<LiveSensorFactory>();
             services.AddSingleton<KafkaConsumerService>();
             services.AddSingleton<SensorAlertsService>();
             services.AddSingleton<AdditionalParser>();
@@ -37,6 +37,7 @@ namespace LiveTelemetrySensor
             services.AddSingleton<RedisCacheHandler>();
 
             services.AddControllers();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
