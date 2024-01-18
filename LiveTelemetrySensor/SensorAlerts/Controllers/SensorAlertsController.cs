@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
-    [Route("[controller]")]
+    [Route("sensor-alerts")]
     [ApiController]
     public class SensorAlertsController : Controller
     {
@@ -39,5 +39,8 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             
             return Ok();
         }
+
+        //[Http]
+        //public ActionResult GetSensorsRanges([FromBody] )
     }
 }

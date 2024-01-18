@@ -10,7 +10,7 @@ namespace LiveTelemetrySensor.Consumer.Services
     {
         private ConsumerConfig _consumerConfig;
         private CancellationTokenSource _currentTokenSource;
-        private readonly IConfiguration _configuration; 
+        private readonly IConfiguration _configuration;
         
 
         public KafkaConsumerService(IConfiguration configuration)
@@ -21,7 +21,7 @@ namespace LiveTelemetrySensor.Consumer.Services
             _consumerConfig.AutoOffsetReset = AutoOffsetReset.Latest;
         }
 
-        public void StartConsumer(Action<string> processDataCallback)
+        public void StartConsumer(Func<string,Task> processDataCallback)
         {
             SetupToken();
             Task.Factory.StartNew(()=>StartConsumerLogic(processDataCallback),_currentTokenSource.Token);
@@ -39,7 +39,7 @@ namespace LiveTelemetrySensor.Consumer.Services
         {
             _currentTokenSource = new CancellationTokenSource();           
         }
-        private void StartConsumerLogic(Action<string> processDataCallback)
+        private async Task StartConsumerLogic(Func<string, Task> processDataCallback)
         {
             
             using (var consumer = OpenConsumer())
@@ -51,7 +51,7 @@ namespace LiveTelemetrySensor.Consumer.Services
                     while (!_currentTokenSource.IsCancellationRequested)
                     {
                         ConsumeResult<Null, string> consumerResult = consumer.Consume(_currentTokenSource.Token);
-                        processDataCallback(consumerResult.Message.Value);
+                        await processDataCallback(consumerResult.Message.Value);
                     }
                 }
                 catch(OperationCanceledException)

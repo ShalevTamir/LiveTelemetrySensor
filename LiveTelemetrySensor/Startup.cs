@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using StackExchange.Redis;
 using LiveTelemetrySensor.Redis.Services;
+using LiveTelemetrySensor.SensorAlerts.Hubs;
 
 namespace LiveTelemetrySensor
 {
@@ -38,6 +39,18 @@ namespace LiveTelemetrySensor
 
             services.AddControllers();
 
+            services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
+            {
+                builder
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .WithOrigins("http://localhost:4200");
+            }));
+            services.AddSignalR()
+                .AddJsonProtocol(options => {
+                    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,8 +68,11 @@ namespace LiveTelemetrySensor
 
             app.UseAuthorization();
 
+            app.UseCors("CorsPolicy");
+
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<SensorAlertsHub>("/sensor-alerts-socket");
                 endpoints.MapControllers();
             });
         }

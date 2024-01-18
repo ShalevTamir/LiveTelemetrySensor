@@ -45,7 +45,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
        
         private void StartProccessing()
         {
-            _kafkaConsumerService.StartConsumer(_teleProcessorService.ProcessTeleData);
+            _kafkaConsumerService.StartConsumer(_teleProcessorService.ProcessTeleDataAsync);
         }
 
         private void StopProccessing()
