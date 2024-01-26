@@ -44,7 +44,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                         requirementParam.ParseAsRequirement(),
                         duration?.ParseAsDuration()
                         );
-                    Debug.WriteLine(JsonConvert.SerializeObject(sensor));
+                    //Debug.WriteLine(JsonConvert.SerializeObject(sensor));
                     return sensor;
                 }).ToArray();
             }

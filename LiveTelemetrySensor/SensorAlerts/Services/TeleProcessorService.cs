@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
@@ -39,7 +40,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _redisCacheHandler.AddRelevantRequirements(liveSensor);
         }
        
-        public void ProcessTeleData(string JTeleData)
+        public async Task ProcessTeleDataAsync(string JTeleData)
         {
             var telemetryFrame = JsonConvert.DeserializeObject<TelemetryFrameDto>(JTeleData);
             if (telemetryFrame == null)
@@ -53,12 +54,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                 bool stateUpdated = liveSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateDurationStatus);
                 if (stateUpdated)
                 {
-                    _communicationService.SendSensorAlert(new SensorAlertDto()
+                    await _communicationService.SendSensorAlertAsync(new SensorAlertDto()
                     {
                         SensorName = liveSensor.SensedParamName,
                         CurrentStatus = liveSensor.CurrentSensorState
                     });
-                    telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
+                    //telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
                 }
             }
         }
