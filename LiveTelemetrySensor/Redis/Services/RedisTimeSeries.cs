@@ -73,8 +73,6 @@ namespace LiveTelemetrySensor.Redis.Services
             _commands.Add(_seriesKey, timestamp, value);
         }
 
-
-
         // O(1)
         public TimeSeriesTuple? GetFirstSample()
         {

@@ -26,7 +26,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         }
 
         [HttpPost("add-sensor")]
-        public ActionResult ChangeSensorState([FromBody] DirectSensorDto directSensorDto)
+        public ActionResult AddDirectSensor([FromBody] DirectSensorDto directSensorDto)
         {
             try
             {
