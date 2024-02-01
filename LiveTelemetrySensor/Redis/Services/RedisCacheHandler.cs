@@ -1,7 +1,7 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models;
-using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
+﻿using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Models.Interfaces;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
@@ -31,7 +31,7 @@ namespace LiveTelemetrySensor.Redis.Services
         }
 
         //Stores all parameters with duration
-        public void AddRelevantRequirements(LiveSensor sensor)
+        public void AddRelevantRequirements(BaseSensor sensor)
         {
             foreach (SensorRequirement requirement in sensor.AdditionalRequirements)
                 SensorToTimeseries(requirement);

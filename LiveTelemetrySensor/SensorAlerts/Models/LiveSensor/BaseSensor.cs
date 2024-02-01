@@ -11,62 +11,37 @@ using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.Redis.Services;
 
-namespace LiveTelemetrySensor.SensorAlerts.Models
+namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
 {
-    public class LiveSensor //: ISensor<double, TelemetryParameterDto>
+    public abstract class BaseSensor //: ISensor<double, TelemetryParameterDto>
     {
         public readonly string SensedParamName;
-        public readonly IEnumerable<RequirementModel> Requirements;
         public readonly IEnumerable<SensorRequirement> AdditionalRequirements;
         public SensorState CurrentSensorState { get; private set; }
 
 
-        public LiveSensor(string sensedParamName, IEnumerable<RequirementModel> requirements, IEnumerable<SensorRequirement> additionalRequirements)
+        public BaseSensor(string sensedParamName, IEnumerable<SensorRequirement> additionalRequirements)
         {
             SensedParamName = sensedParamName;
-            Requirements = requirements;
             AdditionalRequirements = additionalRequirements;
             CurrentSensorState = SensorState.NEUTRAL;
-
-        }
-        public bool Sense(double valueToSense, Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
-        {
-            if (Requirements.Count() == 0)
-            {
-                return UpdateSensorState(AdditionalRequirementMet(UpdateDurationStatus) ? SensorState.INVALID : SensorState.NEUTRAL);
-            }
-            else
-            {
-                foreach (RequirementModel requirement in Requirements)
-                {
-                    RequirementParam requirementParam = requirement.RequirementParam;
-                    if (requirementParam.RequirementMet(valueToSense))
-                    {
-                        if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(UpdateDurationStatus))
-                            return false;
-
-                        return UpdateSensorState(Enum.Parse<SensorState>(requirement.Type.ToString()));
-                    }
-                }
-            }
-            return false;
         }
 
-        private bool UpdateSensorState(SensorState newState)
+        protected bool UpdateSensorState(SensorState newState)
         {
             SensorState previousState = CurrentSensorState;
             CurrentSensorState = newState;
             return previousState != CurrentSensorState;
         }
 
-        private bool AdditionalRequirementMet(Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
+        protected bool AdditionalRequirementMet(Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
         {
-            foreach(var sensorRequirement in AdditionalRequirements) 
-            { 
+            foreach (var sensorRequirement in AdditionalRequirements)
+            {
                 if (UpdateDurationStatus(sensorRequirement) == DurationStatus.REQUIREMENT_NOT_MET)
                     return false;
             }
-            
+
             return true;
         }
 

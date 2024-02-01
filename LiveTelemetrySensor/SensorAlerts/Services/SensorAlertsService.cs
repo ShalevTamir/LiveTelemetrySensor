@@ -1,7 +1,7 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models;
-using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.Consumer.Services;
 using System.Collections.Generic;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
@@ -17,7 +17,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _kafkaConsumerService = kafkaConsumerService;
             _teleProcessorService = teleProcessor;
             _currentState = RunningState.STOP;
-            IEnumerable<LiveSensor> liveSensors = _liveSensorFactory.BuildLiveSensors();
+            IEnumerable<BaseSensor> liveSensors = _liveSensorFactory.BuildLiveSensors();
             _teleProcessorService.AddSensorsToUpdate(liveSensors);
         }
 

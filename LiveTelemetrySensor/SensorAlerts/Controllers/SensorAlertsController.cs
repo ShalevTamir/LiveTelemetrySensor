@@ -40,7 +40,6 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             return Ok();
         }
 
-        //[Http]
-        //public ActionResult GetSensorsRanges([FromBody] )
+   
     }
 }

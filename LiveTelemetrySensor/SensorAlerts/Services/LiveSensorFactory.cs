@@ -1,4 +1,5 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models;
+﻿using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor;
 using Microsoft.Extensions.Configuration;
 using PdfExtractor.Models;
 using PdfExtractor.Models.Requirement;
@@ -28,34 +29,28 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
         private IEnumerable<SensorProperties> BuildTestProperties()
         {
-            return new[]
+            return new SensorProperties[]
             {
                 //new SensorProperties("Altitude", new RequirementRange(0, 10000), new RequirementRange(10000, 20000), new RequirementRange(20000, 50000), "When Longitude is lower than 120 for 1 to 2 minutes"),
                 //new SensorProperties("Longitude", new RequirementRange(-180, 170), new RequirementRange(170, 175), new RequirementRange(175, 180), "When Wind_Speed is higher than 176 for less than 3 seconds"),
                 //new SensorProperties("Wind_Speed", new RequirementRange(0, 55), new RequirementRange(55, 60), new RequirementRange(60, 70), "When Altitude is over 10000 for at least 3 seconds"),
-                new SensorProperties("Engine_Heat", new RequirementRange(0, 70), new RequirementRange(70, 150), new RequirementRange(1500000, 1500001), "When Wind_Speed is over 176 for 3 to 5 seconds")
+                //new SensorProperties("Engine_Heat", new RequirementRange(0, 70), new RequirementRange(70, 150), new RequirementRange(1500000, 1500001), "When Wind_Speed is over 176 for 3 to 5 seconds")
             };
         }
 
-        public LiveSensor BuildLiveSensor(string sensorName, string additionalRequirement, IEnumerable<RequirementModel>? requirements = null)
+        public BaseSensor BuildLiveSensor(string sensorName, string additionalRequirement, IEnumerable<RequirementModel>? requirements = null)
         {
+            if (requirements == null)
+                return new DynamicLiveSensor(sensorName, _additionalParser.Parse(additionalRequirement));
+            else
+                return new ParameterLiveSensor(sensorName, _additionalParser.Parse(additionalRequirement), requirements);
+         }
 
-            return new LiveSensor(
-                sensorName.ToLower(), 
-                requirements == null ? Enumerable.Empty<RequirementModel>() : requirements,
-                _additionalParser.Parse(additionalRequirement)
-                );
-        }
-
-        public IEnumerable<LiveSensor> BuildLiveSensors()
+        public IEnumerable<BaseSensor> BuildLiveSensors()
         {
             foreach (var sensor in BuildTestProperties())
             {
-                yield return new LiveSensor(
-                    sensor.TelemetryParamName.ToLower(),
-                    sensor.Requirements,
-                    _additionalParser.Parse(sensor.AdditionalRequirement)
-                    );
+                yield return BuildLiveSensor(sensor.TelemetryParamName, sensor.AdditionalRequirement, sensor.Requirements);
             }
         }
 

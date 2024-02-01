@@ -1,9 +1,10 @@
-﻿using LiveTelemetrySensor.Common.Extentions;
+using LiveTelemetrySensor.Common.Extentions;
 using LiveTelemetrySensor.Mongo.Models;
 using LiveTelemetrySensor.Mongo.Services;
 using LiveTelemetrySensor.Redis.Services;
-using LiveTelemetrySensor.SensorAlerts.Models;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
 using Newtonsoft.Json;
 using System;
@@ -16,19 +17,20 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 {
     public class TeleProcessorService
     {
-        private Dictionary<string,LiveSensor> _liveSensors;
+
         private CommunicationService _communicationService;
         private RedisCacheHandler _redisCacheHandler;
+        private SensorsContainer _sensorsContainer;
         private MongoAlertsService _mongoAlertsService;
 
         public TeleProcessorService(CommunicationService communicationService, RedisCacheHandler redisCacheHandler, MongoAlertsService mongoAlertsService)
         {
             _communicationService = communicationService;
-            _liveSensors = new Dictionary<string, LiveSensor>();
+            _sensorsContainer = new SensorsContainer();
             _redisCacheHandler = redisCacheHandler;
             _mongoAlertsService = mongoAlertsService;
         }
-        public void AddSensorsToUpdate(IEnumerable<LiveSensor> liveSensors)
+        public void AddSensorsToUpdate(IEnumerable<BaseSensor> liveSensors)
         {
             foreach (var liveSensor in liveSensors)
             {
@@ -36,12 +38,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             }
         }
 
-        public void AddSensorToUpdate(LiveSensor liveSensor)
+        public void AddSensorToUpdate(BaseSensor liveSensor)
         {
-            if (_liveSensors.ContainsKey(liveSensor.SensedParamName))
-                throw new ArgumentException("Sensor " + liveSensor.SensedParamName + " already exists, can't have 2 of the same sensor");
+            if (_sensorsContainer.hasSensor(liveSensor))
+                throw new ArgumentException("Sensor " + liveSensor.SensedParamName + " already exists\n duplicate sensors are forbidden");
 
-            _liveSensors.Add(liveSensor.SensedParamName, liveSensor);
+            _sensorsContainer.InsertSensor(liveSensor);
             _redisCacheHandler.AddRelevantRequirements(liveSensor);
         }
        
@@ -51,28 +53,40 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             if (telemetryFrame == null)
                 throw new ArgumentException("Unable to deserialize telemetry frame \n" + JTeleData+"");
             _redisCacheHandler.CacheTeleData(telemetryFrame);
+
+            foreach(var dynamicSensor in _sensorsContainer.GetDynamicLiveSensors())
+            {
+                bool stateUpdated = dynamicSensor.Sense(_redisCacheHandler.UpdateDurationStatus);
+                await handleSensorStateAsync(stateUpdated, dynamicSensor, telemetryFrame.TimeStamp);
+            }
+
             foreach (var teleParam in telemetryFrame.Parameters)
             {
                 string teleParamName = teleParam.Name.ToLower();
-                if (!_liveSensors.ContainsKey(teleParamName)) continue;
-                LiveSensor liveSensor = _liveSensors[teleParamName];
-                bool stateUpdated = liveSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateDurationStatus);
-                if (stateUpdated)
-                {
-                    await _communicationService.SendSensorAlertAsync(new SensorAlertDto()
-                    {
-                        SensorName = liveSensor.SensedParamName,
-                        CurrentStatus = liveSensor.CurrentSensorState
-                    });
+                if (!_sensorsContainer.hasSensor(teleParamName)) continue;
+                ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParamName);
+                bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateDurationStatus);
+                await handleSensorStateAsync(stateUpdated, parameterSensor, telemetryFrame.TimeStamp);
+            }
+        }
 
-                    await _mongoAlertsService.InsertAlert(new Alert()
-                    {
-                        SensorName = liveSensor.SensedParamName,
-                        SensorStatus = liveSensor.CurrentSensorState,
-                        TimeStamp = telemetryFrame.TimeStamp.ToUnix()
-                    });
-                    //telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
-                }
+        private async Task handleSensorStateAsync(bool stateUpdated, BaseSensor sensor, DateTime timestamp)
+        {
+            if (stateUpdated)
+            {
+                await _communicationService.SendSensorAlertAsync(new SensorAlertDto()
+                {
+                    SensorName = sensor.SensedParamName,
+                    CurrentStatus = sensor.CurrentSensorState
+                });
+
+                await _mongoAlertsService.InsertAlert(new Alert()
+                {
+                    SensorName = sensor.SensedParamName,
+                    SensorStatus = sensor.CurrentSensorState,
+                    TimeStamp = timestamp.ToUnix()
+                });
+                //telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
             }
         }
 
