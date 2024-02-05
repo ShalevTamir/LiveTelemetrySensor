@@ -1,4 +1,7 @@
-﻿using LiveTelemetrySensor.Redis.Services;
+﻿using LiveTelemetrySensor.Common.Extentions;
+using LiveTelemetrySensor.Mongo.Models;
+using LiveTelemetrySensor.Mongo.Services;
+using LiveTelemetrySensor.Redis.Services;
 using LiveTelemetrySensor.SensorAlerts.Models;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
@@ -16,12 +19,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         private Dictionary<string,LiveSensor> _liveSensors;
         private CommunicationService _communicationService;
         private RedisCacheHandler _redisCacheHandler;
+        private MongoAlertsService _mongoAlertsService;
 
-        public TeleProcessorService(CommunicationService communicationService, RedisCacheHandler redisCacheHandler)
+        public TeleProcessorService(CommunicationService communicationService, RedisCacheHandler redisCacheHandler, MongoAlertsService mongoAlertsService)
         {
             _communicationService = communicationService;
             _liveSensors = new Dictionary<string, LiveSensor>();
             _redisCacheHandler = redisCacheHandler;
+            _mongoAlertsService = mongoAlertsService;
         }
         public void AddSensorsToUpdate(IEnumerable<LiveSensor> liveSensors)
         {
@@ -58,6 +63,13 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                     {
                         SensorName = liveSensor.SensedParamName,
                         CurrentStatus = liveSensor.CurrentSensorState
+                    });
+
+                    await _mongoAlertsService.InsertAlert(new Alert()
+                    {
+                        SensorName = liveSensor.SensedParamName,
+                        SensorStatus = liveSensor.CurrentSensorState,
+                        TimeStamp = telemetryFrame.TimeStamp.ToUnix()
                     });
                     //telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
                 }
