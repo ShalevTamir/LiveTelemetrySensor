@@ -8,12 +8,12 @@ using System.Diagnostics;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
-    [Route("sensor-alerts")]
+    [Route("live-sensor-alerts")]
     [ApiController]
-    public class SensorAlertsController : Controller
+    public class LiveSensorAlertsController : Controller
     {
         private SensorAlertsService _sensorAlerts;
-        public SensorAlertsController(SensorAlertsService sensorAlertsService) 
+        public LiveSensorAlertsController(SensorAlertsService sensorAlertsService) 
         {
             _sensorAlerts = sensorAlertsService;
         }
