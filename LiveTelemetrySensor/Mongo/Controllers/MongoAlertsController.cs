@@ -1,7 +1,9 @@
 ﻿using LiveTelemetrySensor.Mongo.Models.Dtos;
 using LiveTelemetrySensor.Mongo.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace LiveTelemetrySensor.Mongo.Controllers
@@ -17,14 +19,29 @@ namespace LiveTelemetrySensor.Mongo.Controllers
             _mongoAlertsService = mongoAlertsService;
         }
 
+        [HttpGet("count")]
+        public async Task<ActionResult> CountAlerts([Required] long MinTimeStamp, [Required] long MaxTimeStamp)
+        {
+            return Ok(JsonConvert.SerializeObject(new {
+                Count = await _mongoAlertsService.CountAlerts(MinTimeStamp,MaxTimeStamp)
+                }));
+        }
+
         [HttpGet]
-        public async Task<ActionResult> GetAlerts([FromQuery]GetAlertsQueryParams queryParams)
+        public async Task<ActionResult> GetAlerts([Required]
+                                                    long MinTimeStamp,
+                                                    [Required]
+                                                    long MaxTimeStamp,
+                                                    [Required]
+                                                    int MaxSamplesInPage,
+                                                    [Required]
+                                                    int PageNumber)
         {
             return Ok(JsonConvert.SerializeObject(await _mongoAlertsService.GetAlerts(
-                queryParams.MinTimeStamp,
-                queryParams.MaxTimeStamp,
-                queryParams.MaxSamplesInPage,
-                queryParams.PageNumber
+                MinTimeStamp,
+                MaxTimeStamp,
+                MaxSamplesInPage,
+                PageNumber
                 )));
         }
     }

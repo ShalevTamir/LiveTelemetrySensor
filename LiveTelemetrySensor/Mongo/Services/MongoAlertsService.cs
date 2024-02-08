@@ -23,6 +23,15 @@ namespace LiveTelemetrySensor.Mongo.Services
         public async Task InsertAlert(Alert alert) =>
             await _alertsCollection.InsertOneAsync(alert);
 
+        public async Task<long> CountAlerts(long minTimeStamp, long maxTimeStamp)
+        {
+            FilterDefinition<Alert> filter = Builders<Alert>.Filter.And(
+                Builders<Alert>.Filter.Gt(TIMESTAMP_MONGO_KEY, minTimeStamp),
+                Builders<Alert>.Filter.Lt(TIMESTAMP_MONGO_KEY, maxTimeStamp)
+                );
+            return await _alertsCollection.CountDocumentsAsync(filter);
+        }
+
         public async Task<List<Alert>> GetAlerts(long minTimeSpan, long maxTimeSpan, int maxSamplesInPage, int pageNumber)
         {
             var findOptions = new FindOptions<Alert>
