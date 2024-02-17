@@ -30,6 +30,16 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _redisCacheHandler = redisCacheHandler;
             _mongoAlertsService = mongoAlertsService;
         }
+
+        public IEnumerable<SensorAlertDto> GetSesnorsState()
+        {
+            return _sensorsContainer.GetAllSensors().Select((sensor) => new SensorAlertDto()
+            {
+                SensorName = sensor.SensedParamName,
+                CurrentStatus = sensor.CurrentSensorState
+            });
+        }
+
         public void AddSensorsToUpdate(IEnumerable<BaseSensor> liveSensors)
         {
             foreach (var liveSensor in liveSensors)

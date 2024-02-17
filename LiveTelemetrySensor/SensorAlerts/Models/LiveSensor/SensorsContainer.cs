@@ -1,4 +1,5 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -47,6 +48,13 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
         public IEnumerable<DynamicLiveSensor> GetDynamicLiveSensors()
         {
             return _dynamicLiveSensors;
+        }
+
+        public IEnumerable<BaseSensor> GetAllSensors()
+        {
+            IEnumerable<BaseSensor> allSensors = Enumerable.Empty<BaseSensor>();
+            allSensors = allSensors.Concat(_dynamicLiveSensors).Concat(_parameterLiveSensors.Values);
+            return allSensors;
         }
 
     }

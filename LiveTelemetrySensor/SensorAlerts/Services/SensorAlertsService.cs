@@ -2,6 +2,7 @@
 using LiveTelemetrySensor.Consumer.Services;
 using System.Collections.Generic;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
+using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
@@ -19,6 +20,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _currentState = RunningState.STOP;
             IEnumerable<BaseSensor> liveSensors = _liveSensorFactory.BuildLiveSensors();
             _teleProcessorService.AddSensorsToUpdate(liveSensors);
+        }
+
+        public IEnumerable<SensorAlertDto> GetSensorsState()
+        {
+            return _teleProcessorService.GetSesnorsState();
         }
 
         public void AddDirectSensor(string sensorName, string additionalRequirements)

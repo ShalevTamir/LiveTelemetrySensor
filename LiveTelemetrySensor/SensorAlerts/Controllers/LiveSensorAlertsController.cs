@@ -3,8 +3,10 @@ using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
@@ -17,6 +19,13 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         {
             _sensorAlerts = sensorAlertsService;
         }
+
+        [HttpGet]
+        public ActionResult GetSensorsState()
+        {
+            return Ok(JsonConvert.SerializeObject(_sensorAlerts.GetSensorsState().ToArray()));
+        }
+
         [HttpPut("state")]
         public ActionResult ChangeSensorState([FromBody] RunningState stateToChangeTo)
         {
