@@ -1,12 +1,13 @@
 ﻿using LiveTelemetrySensor.Redis.Services;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor;
+using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
-using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
@@ -37,16 +38,27 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         [HttpPost("add-sensor")]
         public ActionResult AddDirectSensor([FromBody] DirectSensorDto directSensorDto)
         {
+            DynamicLiveSensor sensor;
             try
             {
-                _sensorAlerts.AddDirectSensor(directSensorDto.SensorName, directSensorDto.AdditionalRequirements);
+                sensor = _sensorAlerts.AddDirectSensor(directSensorDto.SensorName, directSensorDto.AdditionalRequirements);
             }
             catch (ArgumentException e)
             {
                 return BadRequest(e.Message);
             }
-            
-            return Ok();
+
+            return Ok(JsonConvert.SerializeObject(
+                sensor.AdditionalRequirements.Select((SensorRequirement sensorRequirement) =>
+                {
+                    return new SensorRequirementDto
+                    {
+                        ParameterName = sensorRequirement.ParameterName,
+                        Requirement = sensorRequirement.Requirement,
+                        Duration = sensorRequirement.Duration,
+                    };
+                }
+            )));
         }
 
    

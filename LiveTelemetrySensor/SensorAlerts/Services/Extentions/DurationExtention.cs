@@ -11,7 +11,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Extentions
         // Converts to Epoch Time, with null indicating an infinite amount
         public static long RetentionTime(this Duration duration, RequirementTime requirementTime = RequirementTime.MAXIMUM, long retentionMargin = 0)
         {
-            RequirementParam requirement = duration.RequirementParam;
+            RequirementParam requirement = duration.Requirement;
             long retentionTime;
             if (requirement is RequirementRange requirementRange)
             {

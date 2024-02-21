@@ -36,8 +36,8 @@ namespace LiveTelemetrySensor.Redis.Services
                 _sensorsDurations.Add(sensorName, duration);
             else
             {
-                RequirementParam currentDurationLength = _sensorsDurations[sensorName].RequirementParam;
-                RequirementParam updatedDurationLength = duration.RequirementParam;
+                RequirementParam currentDurationLength = _sensorsDurations[sensorName].Requirement;
+                RequirementParam updatedDurationLength = duration.Requirement;
                 if (currentDurationLength.Compare(updatedDurationLength) == -1)
                     _sensorsDurations[sensorName] = duration;
             }

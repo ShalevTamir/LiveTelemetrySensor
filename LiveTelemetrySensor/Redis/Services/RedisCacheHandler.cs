@@ -65,7 +65,7 @@ namespace LiveTelemetrySensor.Redis.Services
                 sensor.DurationStatus = DurationStatusHelper.FromBool(sensor.Requirement.RequirementMet(latestSample.Val));
             else
             {
-                RequirementRange? durationRequirementRange = sensor.Duration.RequirementParam as RequirementRange;
+                RequirementRange? durationRequirementRange = sensor.Duration.Requirement as RequirementRange;
                 bool maximumRetentionReached = parameterTimeSeries.RetentionReached(retentionTime: sensor.Duration.RetentionTime(requirementTime: RequirementTime.MAXIMUM));
         
 
