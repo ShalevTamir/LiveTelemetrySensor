@@ -26,11 +26,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
 
         public bool hasSensor(BaseSensor sensor)
         {
-            if(sensor is DynamicLiveSensor dynamicLiveSensor)
-                return _dynamicLiveSensors.Contains(dynamicLiveSensor);
-            else if(sensor is ParameterLiveSensor)
-                return _parameterLiveSensors.ContainsKey(sensor.SensedParamName);
-            return false;
+            return hasSensor(sensor.SensedParamName);  
         }
 
         public bool hasSensor(string sensorName)
