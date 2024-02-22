@@ -1,8 +1,8 @@
 ﻿namespace LiveTelemetrySensor.SensorAlerts.Models.Dtos
 {
-    public class DirectSensorDto
+    public class SensorDescriptionDto
     {
         public string SensorName { get; set; }
-        public string AdditionalRequirements { get; set; }
+        public string SensorRequirements { get; set; }
     }
 }

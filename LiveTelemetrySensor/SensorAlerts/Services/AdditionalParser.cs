@@ -24,14 +24,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _requestsService = requestService;
         }
 
-        public SensorRequirement[] Parse(string additionalText)
+        public async Task<SensorRequirement[]> Parse(string additionalText)
         {
             try
             { 
-                string JSensors = _requestsService.PostAsync(
+                string JSensors = await _requestsService.PostAsync(
                      ADDITIONAL_PARSER_URI,
                      new AdditionalTextDto() { text = additionalText }
-                ).Result;
+                );
                 JArray JObjSensors = JArray.Parse(JSensors);
 
                 return JObjSensors.Select(JObjSensor =>

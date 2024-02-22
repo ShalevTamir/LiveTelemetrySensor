@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
@@ -19,7 +21,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _kafkaConsumerService = kafkaConsumerService;
             _teleProcessorService = teleProcessor;
             _currentState = RunningState.STOP;
-            IEnumerable<BaseSensor> liveSensors = _liveSensorFactory.BuildLiveSensors();
+            IEnumerable<BaseSensor> liveSensors = _liveSensorFactory.BuildLiveSensors().Select((sensor) => sensor.Result);
             _teleProcessorService.AddSensorsToUpdate(liveSensors);
         }
 
@@ -28,11 +30,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             return _teleProcessorService.GetSesnorsState();
         }
 
-        public DynamicLiveSensor AddDirectSensor(string sensorName, string additionalRequirements)
+        public void AddDynamicSensor(DynamicLiveSensor sensor)
         {
-            DynamicLiveSensor sensor = (DynamicLiveSensor)_liveSensorFactory.BuildLiveSensor(sensorName, additionalRequirements);
             _teleProcessorService.AddSensorToUpdate(sensor);
-            return sensor;
         }
 
         public bool ChangeState(RunningState stateToChangeTo)

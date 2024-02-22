@@ -16,6 +16,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
     public class LiveSensorAlertsController : Controller
     {
         private SensorAlertsService _sensorAlerts;
+        
         public LiveSensorAlertsController(SensorAlertsService sensorAlertsService) 
         {
             _sensorAlerts = sensorAlertsService;
@@ -35,31 +36,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             else return BadRequest("Server is already in state " + stateToChangeTo);
         }
 
-        [HttpPost("add-sensor")]
-        public ActionResult AddDirectSensor([FromBody] DirectSensorDto directSensorDto)
-        {
-            DynamicLiveSensor sensor;
-            try
-            {
-                sensor = _sensorAlerts.AddDirectSensor(directSensorDto.SensorName, directSensorDto.AdditionalRequirements);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-
-            return Ok(JsonConvert.SerializeObject(
-                sensor.AdditionalRequirements.Select((SensorRequirement sensorRequirement) =>
-                {
-                    return new SensorRequirementDto
-                    {
-                        ParameterName = sensorRequirement.ParameterName,
-                        Requirement = sensorRequirement.Requirement,
-                        Duration = sensorRequirement.Duration,
-                    };
-                }
-            )));
-        }
+        
 
    
     }

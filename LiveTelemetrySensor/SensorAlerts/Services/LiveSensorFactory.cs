@@ -7,6 +7,7 @@ using PdfExtractor.Services;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
@@ -38,20 +39,22 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             };
         }
 
-        public BaseSensor BuildLiveSensor(string sensorName, string additionalRequirement, IEnumerable<RequirementModel>? requirements = null)
+        public async Task<BaseSensor> BuildLiveSensor(string sensorName, string additionalRequirement, IEnumerable<RequirementModel>? requirements = null)
         {
             if (requirements == null)
-                return new DynamicLiveSensor(sensorName, _additionalParser.Parse(additionalRequirement));
+                return new DynamicLiveSensor(sensorName, await _additionalParser.Parse(additionalRequirement));
             else
-                return new ParameterLiveSensor(sensorName, _additionalParser.Parse(additionalRequirement), requirements);
+                return new ParameterLiveSensor(sensorName, await _additionalParser.Parse(additionalRequirement), requirements);
          }
 
-        public IEnumerable<BaseSensor> BuildLiveSensors()
+        public IEnumerable<Task<BaseSensor>> BuildLiveSensors()
         {
-            foreach (var sensor in BuildTestProperties())
-            {
-                yield return BuildLiveSensor(sensor.TelemetryParamName, sensor.AdditionalRequirement, sensor.Requirements);
-            }
+           return BuildTestProperties().Select(
+               async (sensor) => await BuildLiveSensor(
+                   sensor.TelemetryParamName,
+                   sensor.AdditionalRequirement,
+                   sensor.Requirements
+               ));
         }
 
     }

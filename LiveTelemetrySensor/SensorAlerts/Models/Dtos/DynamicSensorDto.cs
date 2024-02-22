@@ -6,6 +6,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.Dtos
 {
     public class DynamicSensorDto
     {
-        public IEnumerable<SensorRequirementDto> Requirements { get; set; }
+        public string SensorName { get; set; }
+        public SensorRequirementDto[] Requirements { get; set; }
     }
 }
