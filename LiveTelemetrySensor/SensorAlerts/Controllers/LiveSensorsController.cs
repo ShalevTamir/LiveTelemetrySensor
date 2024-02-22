@@ -15,13 +15,18 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
     [ApiController]
     public class LiveSensorsController: Controller
     {
-        private SensorAlertsService _sensorAlerts;
         private AdditionalParser _additionalParser;
-        public LiveSensorsController(SensorAlertsService sensorAlerts, AdditionalParser additionalParser)
+        private TeleProcessorService _teleProcessor;
+        public LiveSensorsController(TeleProcessorService teleProcessor, AdditionalParser additionalParser)
         {
             _additionalParser = additionalParser;
-            _sensorAlerts = sensorAlerts;
+            _teleProcessor = teleProcessor;
+        }
 
+        [HttpGet("has-sensor")]
+        public ActionResult HasSensor(string sensorName)
+        {
+            return Ok(_teleProcessor.HasSensor(sensorName));
         }
 
         [HttpGet("parse-sensor")]
@@ -47,7 +52,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         {
             try
             {
-                _sensorAlerts.AddDynamicSensor(
+                _teleProcessor.AddSensorToUpdate(
                     new DynamicLiveSensor(
                         dynamicSensorDto.SensorName,
                         dynamicSensorDto.Requirements.Select((requirementDto) => new SensorRequirement(

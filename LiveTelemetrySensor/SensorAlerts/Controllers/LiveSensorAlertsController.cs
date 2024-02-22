@@ -16,16 +16,18 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
     public class LiveSensorAlertsController : Controller
     {
         private SensorAlertsService _sensorAlerts;
+        private TeleProcessorService _teleProcessor;
         
-        public LiveSensorAlertsController(SensorAlertsService sensorAlertsService) 
+        public LiveSensorAlertsController(SensorAlertsService sensorAlertsService, TeleProcessorService teleProcessor) 
         {
             _sensorAlerts = sensorAlertsService;
+            _teleProcessor = teleProcessor;
         }
 
         [HttpGet]
         public ActionResult GetSensorsState()
         {
-            return Ok(JsonConvert.SerializeObject(_sensorAlerts.GetSensorsState().ToArray()));
+            return Ok(JsonConvert.SerializeObject(_teleProcessor.GetSensorsState().ToArray()));
         }
 
         [HttpPut("state")]
