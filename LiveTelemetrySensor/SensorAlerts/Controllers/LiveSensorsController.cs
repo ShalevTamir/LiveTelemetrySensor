@@ -36,12 +36,17 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             return Ok(JsonConvert.SerializeObject(
                 parsedSensorRequirements.Select((SensorRequirement sensorRequirement) =>
                 {
-                    return new SensorRequirementDto
+                    var sensorRequirementDto = new SensorRequirementDto
                     {
                         ParameterName = sensorRequirement.ParameterName,
                         Requirement = new RequirementDto(sensorRequirement.Requirement),
-                        Duration = sensorRequirement.Duration,
+                        
                     };
+                    if(sensorRequirement.Duration != null)
+                    {
+                        sensorRequirementDto.Duration = new DurationDto(sensorRequirement.Duration);
+                    }
+                    return sensorRequirementDto;
                 }
             )));
 
@@ -58,7 +63,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
                         dynamicSensorDto.Requirements.Select((requirementDto) => new SensorRequirement(
                             requirementDto.ParameterName,
                             requirementDto.Requirement.ToRequirementParam(),
-                            requirementDto.Duration
+                            requirementDto.Duration?.ToDuration()
                             ))
                         ));
             }

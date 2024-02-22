@@ -1,4 +1,6 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+﻿using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
+using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using PdfExtractor.Models.Requirement;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
@@ -13,7 +15,6 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
             DurationType = durationType;
             Requirement = requirementParam;
         }
-
         
     }
 }

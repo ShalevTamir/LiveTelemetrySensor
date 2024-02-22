@@ -1,10 +1,12 @@
-﻿using PdfExtractor.Models.Requirement;
+﻿using Newtonsoft.Json;
+using PdfExtractor.Models.Requirement;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models.Dtos
 {
     public class RequirementDto
     {
         public string Value { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? EndValue { get; set; }
 
         public RequirementDto() { }

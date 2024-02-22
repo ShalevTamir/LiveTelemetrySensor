@@ -10,6 +10,6 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.Dtos
         public string ParameterName { get; set; }
         public RequirementDto Requirement { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public Duration? Duration { get; set; }
+        public DurationDto? Duration { get; set; }
     }
 }
