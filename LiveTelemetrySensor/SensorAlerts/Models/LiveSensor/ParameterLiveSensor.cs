@@ -17,7 +17,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor
             Requirements = requirements;
         }
 
-        public bool Sense(double valueToSense, Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
+        public bool Sense(double valueToSense, Func<SensorRequirement, RequirementStatus> UpdateDurationStatus)
         {
             foreach (RequirementModel requirement in Requirements)
             {

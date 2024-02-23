@@ -22,7 +22,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
 
         public BaseSensor(string sensedParamName, IEnumerable<SensorRequirement> additionalRequirements)
         {
-            SensedParamName = sensedParamName;
+            SensedParamName = sensedParamName.ToLower();
             AdditionalRequirements = additionalRequirements;
             CurrentSensorState = SensorState.NEUTRAL;
         }
@@ -34,11 +34,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
             return previousState != CurrentSensorState;
         }
 
-        protected bool AdditionalRequirementMet(Func<SensorRequirement, DurationStatus> UpdateDurationStatus)
+        protected bool AdditionalRequirementMet(Func<SensorRequirement, RequirementStatus> UpdateDurationStatus)
         {
             foreach (var sensorRequirement in AdditionalRequirements)
             {
-                if (UpdateDurationStatus(sensorRequirement) == DurationStatus.REQUIREMENT_NOT_MET)
+                if (UpdateDurationStatus(sensorRequirement) == RequirementStatus.REQUIREMENT_NOT_MET)
                     return false;
             }
 

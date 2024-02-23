@@ -67,20 +67,21 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             var telemetryFrame = JsonConvert.DeserializeObject<TelemetryFrameDto>(JTeleData);
             if (telemetryFrame == null)
                 throw new ArgumentException("Unable to deserialize telemetry frame \n" + JTeleData+"");
+
+            lowerCaseParameterNames(telemetryFrame);
             _redisCacheHandler.CacheTeleData(telemetryFrame);
 
             foreach(var dynamicSensor in _sensorsContainer.GetDynamicLiveSensors())
             {
-                bool stateUpdated = dynamicSensor.Sense(_redisCacheHandler.UpdateDurationStatus);
+                bool stateUpdated = dynamicSensor.Sense(_redisCacheHandler.UpdateRequirementStatus);
                 await handleSensorStateAsync(stateUpdated, dynamicSensor, telemetryFrame.TimeStamp);
             }
 
             foreach (var teleParam in telemetryFrame.Parameters)
             {
-                string teleParamName = teleParam.Name.ToLower();
-                if (!_sensorsContainer.hasSensor(teleParamName)) continue;
-                ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParamName);
-                bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateDurationStatus);
+                if (!_sensorsContainer.hasSensor(teleParam.Name)) continue;
+                ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParam.Name);
+                bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateRequirementStatus);
                 await handleSensorStateAsync(stateUpdated, parameterSensor, telemetryFrame.TimeStamp);
             }
         }
@@ -104,7 +105,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                 //telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
             }
         }
-
+        
+        private void lowerCaseParameterNames(TelemetryFrameDto frame)
+        {
+            foreach(var parameter in frame.Parameters) 
+            {
+                parameter.Name = parameter.Name.ToLower();
+            }
+        }
        
     }
 }

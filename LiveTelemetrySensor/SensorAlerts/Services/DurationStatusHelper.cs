@@ -5,9 +5,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 {
     public static class DurationStatusHelper
     {
-        public static DurationStatus FromBool(bool value)
+        public static RequirementStatus FromBool(bool value)
         {
-            return (DurationStatus)Convert.ToInt32(value);
+            return (RequirementStatus)Convert.ToInt32(value);
         }
     }
 }

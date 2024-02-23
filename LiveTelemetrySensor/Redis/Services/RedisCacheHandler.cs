@@ -2,6 +2,7 @@
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Models.Interfaces;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
@@ -33,15 +34,17 @@ namespace LiveTelemetrySensor.Redis.Services
         //Stores all parameters with duration
         public void AddRelevantRequirements(BaseSensor sensor)
         {
+            if(sensor is ParameterLiveSensor) 
+                _redisCaheService.CreateTimeSeries(sensor.SensedParamName);
             foreach (SensorRequirement requirement in sensor.AdditionalRequirements)
-                SensorToTimeseries(requirement);
+                RequirementToTimeseries(requirement);
         }
 
         //Receives a telmetry frame, cashes the relevant information
         public void CacheTeleData(TelemetryFrameDto teleFrame)
         {
             foreach (var telemetryParameter in
-                teleFrame.Parameters.Where(param => _redisCaheService.HasTimeSeries(param.Name.ToLower())))
+                teleFrame.Parameters.Where(param => _redisCaheService.HasTimeSeries(param.Name)))
             {
                 CacheParameter(
                     telemetryParameter.Name,
@@ -53,28 +56,27 @@ namespace LiveTelemetrySensor.Redis.Services
         //Checks if the requirement has been met for the duration - iterates over all cached values
         //If a duration requirement already met - only checks current latest param value to match requirement
         // sometimes delete all samples?
-        public DurationStatus UpdateDurationStatus(SensorRequirement sensor)
+        public RequirementStatus UpdateRequirementStatus(SensorRequirement sensor)
         {
             ReuploadToRedis(sensor);
 
-            var parameterTimeSeries = _redisCaheService.GetStoredObject<RedisTimeSeries>(sensor.ParameterName.ToLower());
+            var parameterTimeSeries = _redisCaheService.GetStoredObject<RedisTimeSeries>(sensor.ParameterName);
             TimeSeriesTuple? latestSample = parameterTimeSeries.GetLastestSample();
-            Debug.Assert(latestSample != null);
-
-            if (sensor.Duration == null)
-                sensor.DurationStatus = DurationStatusHelper.FromBool(sensor.Requirement.RequirementMet(latestSample.Val));
+            if (latestSample == null)
+                sensor.RequirementStatus = RequirementStatus.REQUIREMENT_NOT_MET;
+            else if (sensor.Duration == null)
+                sensor.RequirementStatus = DurationStatusHelper.FromBool(sensor.Requirement.RequirementMet(latestSample.Val));
             else
             {
                 RequirementRange? durationRequirementRange = sensor.Duration.Requirement as RequirementRange;
                 bool maximumRetentionReached = parameterTimeSeries.RetentionReached(retentionTime: sensor.Duration.RetentionTime(requirementTime: RequirementTime.MAXIMUM));
-        
 
                 if (durationRequirementRange == null || durationRequirementRange.EndValue == double.PositiveInfinity)
                 {
-                    if (sensor.DurationStatus == DurationStatus.REQUIREMENT_MET)
+                    if (sensor.RequirementStatus == RequirementStatus.REQUIREMENT_MET)
                     {
                         // if requirement not met, delete all samples
-                        sensor.DurationStatus = DurationStatusHelper.FromBool(sensor.Requirement.RequirementMet(latestSample.Val));
+                        sensor.RequirementStatus = DurationStatusHelper.FromBool(sensor.Requirement.RequirementMet(latestSample.Val));
                     }
                     else if (maximumRetentionReached)
                     {
@@ -84,10 +86,10 @@ namespace LiveTelemetrySensor.Redis.Services
                             sensor.Duration.RetentionTime(requirementTime: RequirementTime.MAXIMUM)
                             );
 
-                        sensor.DurationStatus = SamplesMeetRequirement(samples, sensor.Requirement, false);
+                        sensor.RequirementStatus = SamplesMeetRequirement(samples, sensor.Requirement, false);
                     }
                     else
-                        sensor.DurationStatus = DurationStatus.REQUIREMENT_NOT_MET;
+                        sensor.RequirementStatus = RequirementStatus.REQUIREMENT_NOT_MET;
                 }
                 else if(durationRequirementRange.Value == double.NegativeInfinity)
                 {
@@ -98,19 +100,19 @@ namespace LiveTelemetrySensor.Redis.Services
                             sensor.ParameterName,
                             sensor.Duration.RetentionTime(requirementTime: RequirementTime.MAXIMUM)
                             );
-                        sensor.DurationStatus = SamplesMeetRequirement(samples, sensor.Requirement, true);
+                        sensor.RequirementStatus = SamplesMeetRequirement(samples, sensor.Requirement, true);
                     }
                     else
-                        sensor.DurationStatus = DurationStatus.REQUIREMENT_MET;
+                        sensor.RequirementStatus = RequirementStatus.REQUIREMENT_MET;
                 }
                 else
                 {
                     bool minimumRetentionReached = parameterTimeSeries.RetentionReached(retentionTime: sensor.Duration.RetentionTime(requirementTime: RequirementTime.MINIMUM));
                     if (maximumRetentionReached)
                     {
-                        if (sensor.DurationStatus == DurationStatus.REQUIREMENT_MET)
+                        if (sensor.RequirementStatus == RequirementStatus.REQUIREMENT_MET)
                         {
-                            sensor.DurationStatus = DurationStatus.REQUIREMENT_NOT_MET;
+                            sensor.RequirementStatus = RequirementStatus.REQUIREMENT_NOT_MET;
                         }
                         else
                         {
@@ -119,11 +121,11 @@ namespace LiveTelemetrySensor.Redis.Services
                                 sensor.ParameterName,
                                 sensor.Duration.RetentionTime(requirementTime: RequirementTime.MINIMUM)
                                 );
-                            sensor.DurationStatus = SamplesMeetRequirement(upToValueSamples, sensor.Requirement, false);
+                            sensor.RequirementStatus = SamplesMeetRequirement(upToValueSamples, sensor.Requirement, false);
 
                             // Up until value - has to be true
-                            if (SamplesMeetRequirement(upToValueSamples, sensor.Requirement, false) == DurationStatus.REQUIREMENT_NOT_MET)
-                                sensor.DurationStatus = DurationStatus.REQUIREMENT_NOT_MET;
+                            if (SamplesMeetRequirement(upToValueSamples, sensor.Requirement, false) == RequirementStatus.REQUIREMENT_NOT_MET)
+                                sensor.RequirementStatus = RequirementStatus.REQUIREMENT_NOT_MET;
                             else
                             {
                                 // Values above the start value up to the end value
@@ -134,15 +136,15 @@ namespace LiveTelemetrySensor.Redis.Services
                                     );
 
                                 // Value to end value - mustn't all be true
-                                sensor.DurationStatus = SamplesMeetRequirement(upToEndValueSamples, sensor.Requirement, true);
+                                sensor.RequirementStatus = SamplesMeetRequirement(upToEndValueSamples, sensor.Requirement, true);
                             }
                         }
                     }
                     else if (minimumRetentionReached)
                     {
-                        if (sensor.DurationStatus == DurationStatus.REQUIREMENT_MET)
+                        if (sensor.RequirementStatus == RequirementStatus.REQUIREMENT_MET)
                         {
-                            sensor.DurationStatus = DurationStatusHelper.FromBool(sensor.Requirement.RequirementMet(latestSample.Val));
+                            sensor.RequirementStatus = DurationStatusHelper.FromBool(sensor.Requirement.RequirementMet(latestSample.Val));
                         }
                         else
                         {
@@ -151,21 +153,23 @@ namespace LiveTelemetrySensor.Redis.Services
                                 sensor.ParameterName,
                                 sensor.Duration.RetentionTime(requirementTime: RequirementTime.MINIMUM)
                                 );
-                            sensor.DurationStatus = SamplesMeetRequirement(samples, sensor.Requirement, false);
+                            sensor.RequirementStatus = SamplesMeetRequirement(samples, sensor.Requirement, false);
                         }
                     }
                     else
-                        sensor.DurationStatus = DurationStatus.REQUIREMENT_NOT_MET;
+                        sensor.RequirementStatus = RequirementStatus.REQUIREMENT_NOT_MET;
                 }
             }
 
-            return sensor.DurationStatus;
+            return sensor.RequirementStatus;
         }
 
-        private void SensorToTimeseries(SensorRequirement sensor)
+      
+
+        private void RequirementToTimeseries(SensorRequirement sensor)
         {
             _redisCaheService.CreateTimeSeries(
-                    sensor.ParameterName.ToLower(),
+                    sensor.ParameterName,
                     sensor.Duration == null ? 1 : sensor.Duration.RetentionTime()
                     );
         }
@@ -173,10 +177,10 @@ namespace LiveTelemetrySensor.Redis.Services
         private void ReuploadToRedis(SensorRequirement sensor)
         {
             if (!_redisCaheService.ContainsKey(sensor.ParameterName.ToLower()))
-                SensorToTimeseries(sensor);
+                RequirementToTimeseries(sensor);
         }
         
-        private DurationStatus SamplesMeetRequirement(IEnumerable<TimeSeriesTuple> samples, RequirementParam requirement, bool reverseRequirement)
+        private RequirementStatus SamplesMeetRequirement(IEnumerable<TimeSeriesTuple> samples, RequirementParam requirement, bool reverseRequirement)
         {
             bool requirementBroken = samples.Any(sample => !requirement.RequirementMet(sample.Val));
             requirementBroken = reverseRequirement ? !requirementBroken : requirementBroken;
