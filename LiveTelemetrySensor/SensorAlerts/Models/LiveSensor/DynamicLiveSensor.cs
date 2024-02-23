@@ -11,9 +11,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor
         {
         }
 
-        public bool Sense(Func<SensorRequirement, RequirementStatus> UpdateDurationStatus)
+        public bool Sense()
         {
-            return UpdateSensorState(AdditionalRequirementMet(UpdateDurationStatus) ? SensorState.INVALID : SensorState.VALID);
+            return UpdateSensorState(AdditionalRequirementMet() ? SensorState.INVALID : SensorState.VALID);
         }
     }
 }

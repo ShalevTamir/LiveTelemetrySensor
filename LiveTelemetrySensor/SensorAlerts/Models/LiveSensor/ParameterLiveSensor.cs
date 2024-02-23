@@ -17,14 +17,15 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor
             Requirements = requirements;
         }
 
-        public bool Sense(double valueToSense, Func<SensorRequirement, RequirementStatus> UpdateDurationStatus)
+        public bool Sense(double valueToSense)
         {
+            //bug caused because: not updaing duration status when other requirement types are met and then it thinks that the previous is REQUIREMENT_MET
             foreach (RequirementModel requirement in Requirements)
             {
                 RequirementParam requirementParam = requirement.RequirementParam;
                 if (requirementParam.RequirementMet(valueToSense))
                 {
-                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet(UpdateDurationStatus))
+                    if (requirement.Type == RequirementType.INVALID && !AdditionalRequirementMet())
                         return false;
 
                     return UpdateSensorState(Enum.Parse<SensorState>(requirement.Type.ToString()));

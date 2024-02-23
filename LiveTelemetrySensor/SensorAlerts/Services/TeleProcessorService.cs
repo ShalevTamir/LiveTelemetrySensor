@@ -70,10 +70,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
             lowerCaseParameterNames(telemetryFrame);
             _redisCacheHandler.CacheTeleData(telemetryFrame);
+            foreach(var sensor in _sensorsContainer.GetAllSensors())
+            {
+                sensor.UpdateAdditionalRequirementStatus(_redisCacheHandler.UpdateRequirementStatus);
+            }
 
             foreach(var dynamicSensor in _sensorsContainer.GetDynamicLiveSensors())
             {
-                bool stateUpdated = dynamicSensor.Sense(_redisCacheHandler.UpdateRequirementStatus);
+                bool stateUpdated = dynamicSensor.Sense();
                 await handleSensorStateAsync(stateUpdated, dynamicSensor, telemetryFrame.TimeStamp);
             }
 
@@ -81,7 +85,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             {
                 if (!_sensorsContainer.hasSensor(teleParam.Name)) continue;
                 ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParam.Name);
-                bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value), _redisCacheHandler.UpdateRequirementStatus);
+                bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value));
                 await handleSensorStateAsync(stateUpdated, parameterSensor, telemetryFrame.TimeStamp);
             }
         }

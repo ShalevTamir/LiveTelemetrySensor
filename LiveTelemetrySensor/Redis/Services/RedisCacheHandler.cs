@@ -201,14 +201,14 @@ namespace LiveTelemetrySensor.Redis.Services
 
         private void CacheParameter(string parameterName, TimeSeriesTuple sample)
         {
-            _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower()).Add(
+            _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName).Add(
                 sample.Time, sample.Val
                 );
         }
 
         private IEnumerable<TimeSeriesTuple> GetSamples(string parameterName, long retentionLength, long offsetTimestamp = 0)
         {
-            var redisTimeSeries = _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName.ToLower());
+            var redisTimeSeries = _redisCaheService.GetStoredObject<RedisTimeSeries>(parameterName);
             TimeSeriesTuple currentSample = redisTimeSeries.GetLastestSample();
             IEnumerable<TimeSeriesTuple> samplesToReturn = redisTimeSeries.GetRange(
                 currentSample.Time - retentionLength,

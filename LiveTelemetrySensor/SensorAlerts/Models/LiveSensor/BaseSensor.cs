@@ -34,15 +34,17 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
             return previousState != CurrentSensorState;
         }
 
-        protected bool AdditionalRequirementMet(Func<SensorRequirement, RequirementStatus> UpdateDurationStatus)
+        protected bool AdditionalRequirementMet()
         {
-            foreach (var sensorRequirement in AdditionalRequirements)
-            {
-                if (UpdateDurationStatus(sensorRequirement) == RequirementStatus.REQUIREMENT_NOT_MET)
-                    return false;
-            }
+            return AdditionalRequirements.All((sensorRequirement) => sensorRequirement.RequirementStatus == RequirementStatus.REQUIREMENT_MET);
+        }
 
-            return true;
+        public void UpdateAdditionalRequirementStatus(Func<SensorRequirement, RequirementStatus> UpdateDurationStatus)
+        {
+            foreach(var sensorRequirement in AdditionalRequirements)
+            {
+                UpdateDurationStatus(sensorRequirement);
+            }
         }
 
         //private TelemetryParameterDto FindParameter(IEnumerable<TelemetryParameterDto> parameterValues, string parameterName)

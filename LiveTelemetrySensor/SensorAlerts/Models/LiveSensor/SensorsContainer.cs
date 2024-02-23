@@ -52,6 +52,5 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
             allSensors = allSensors.Concat(_dynamicLiveSensors).Concat(_parameterLiveSensors.Values);
             return allSensors;
         }
-
     }
 }

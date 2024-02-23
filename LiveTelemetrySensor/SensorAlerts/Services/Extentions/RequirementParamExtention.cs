@@ -8,9 +8,8 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Extentions
     {
         public static bool RequirementMet(this RequirementParam requirement, double value)
         {
-            if (requirement is RequirementRange)
+            if (requirement is RequirementRange requirementRange)
             {
-                RequirementRange requirementRange = (RequirementRange)requirement;
                 if (value < requirementRange.EndValue && value >= requirementRange.Value)
                     return true;
             }
