@@ -3,7 +3,7 @@ using System;
 
 namespace LiveTelemetrySensor.SensorAlerts.Services
 {
-    public static class DurationStatusHelper
+    public static class RequirementStatusHelper
     {
         public static RequirementStatus FromBool(bool value)
         {
