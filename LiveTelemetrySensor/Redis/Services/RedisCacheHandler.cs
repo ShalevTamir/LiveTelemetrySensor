@@ -129,34 +129,29 @@ namespace LiveTelemetrySensor.Redis.Services
         {
             if (maximumRetentionReached)
             {
-                if (requirement.RequirementStatus == RequirementStatus.REQUIREMENT_MET)
-                {
+              
+                // Values up to the start value
+                IEnumerable<TimeSeriesTuple> upToValueSamples = GetSamples(
+                    requirement.ParameterName,
+                    requirement.Duration.RetentionTime(requirementTime: RequirementTime.MINIMUM)
+                    );
+
+                // Up until value - has to be true
+                if (SamplesMeetRequirement(upToValueSamples, requirement.Requirement, false) == RequirementStatus.REQUIREMENT_NOT_MET)
                     return RequirementStatus.REQUIREMENT_NOT_MET;
-                }
                 else
                 {
-                    // Values up to the start value
-                    IEnumerable<TimeSeriesTuple> upToValueSamples = GetSamples(
+                    // Values above the start value up to the end value
+                    IEnumerable<TimeSeriesTuple> upToEndValueSamples = GetSamples(
                         requirement.ParameterName,
+                        requirement.Duration.RetentionTime(requirementTime: RequirementTime.MAXIMUM),
                         requirement.Duration.RetentionTime(requirementTime: RequirementTime.MINIMUM)
                         );
 
-                    // Up until value - has to be true
-                    if (SamplesMeetRequirement(upToValueSamples, requirement.Requirement, false) == RequirementStatus.REQUIREMENT_NOT_MET)
-                        return RequirementStatus.REQUIREMENT_NOT_MET;
-                    else
-                    {
-                        // Values above the start value up to the end value
-                        IEnumerable<TimeSeriesTuple> upToEndValueSamples = GetSamples(
-                            requirement.ParameterName,
-                            requirement.Duration.RetentionTime(requirementTime: RequirementTime.MAXIMUM),
-                            requirement.Duration.RetentionTime(requirementTime: RequirementTime.MINIMUM)
-                            );
-
-                        // Value to end value - mustn't all be true
-                        return SamplesMeetRequirement(upToEndValueSamples, requirement.Requirement, true);
-                    }
+                    // Value to end value - mustn't all be true
+                    return SamplesMeetRequirement(upToEndValueSamples, requirement.Requirement, true);
                 }
+                
             }
             else if (minimumRetentionReached)
             {

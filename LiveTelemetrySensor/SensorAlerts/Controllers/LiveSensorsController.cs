@@ -64,7 +64,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
                             requirementDto.ParameterName,
                             requirementDto.Requirement.ToRequirementParam(),
                             requirementDto.Duration?.ToDuration()
-                            ))
+                            )).ToArray()
                         ));
             }
             catch (ArgumentException e)
