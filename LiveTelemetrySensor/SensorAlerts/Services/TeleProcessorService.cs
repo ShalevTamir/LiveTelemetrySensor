@@ -61,6 +61,13 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _sensorsContainer.InsertSensor(liveSensor);
             _redisCacheHandler.AddRelevantRequirements(liveSensor);
         }
+
+        public void RemoveSensorToUpdate(string sensorName)
+        {
+            bool removed = _sensorsContainer.RemoveSensor(sensorName);
+            if (!removed)
+                throw new ArgumentException("Sensor " + sensorName + " doesn't exist");
+        }
        
         public async Task ProcessTeleDataAsync(string JTeleData)
         {

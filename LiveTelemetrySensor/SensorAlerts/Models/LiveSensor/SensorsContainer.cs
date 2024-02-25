@@ -24,6 +24,15 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
                 _dynamicLiveSensors.Add(dynamicLiveSensor);
         }
 
+        public bool RemoveSensor(string sensorName)
+        {
+            int beforeRemovalCount = _parameterLiveSensors.Count + _dynamicLiveSensors.Count;
+            _parameterLiveSensors.Remove(sensorName);
+            _dynamicLiveSensors.RemoveAll((sensor) => sensor.SensedParamName == sensorName);
+            int currentCount = _parameterLiveSensors.Count + _dynamicLiveSensors.Count;
+            return beforeRemovalCount != currentCount;
+        }
+
         public bool hasSensor(BaseSensor sensor)
         {
             return hasSensor(sensor.SensedParamName);  

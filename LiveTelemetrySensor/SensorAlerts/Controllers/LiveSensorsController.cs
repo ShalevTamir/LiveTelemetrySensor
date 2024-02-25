@@ -74,5 +74,18 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
 
             return Ok();
         }
+
+        [HttpPost("remove-sensor")]
+        public ActionResult RemoveSensor([FromBody] string sensorName)
+        {
+            try
+            {
+                _teleProcessor.RemoveSensorToUpdate(sensorName);
+                return Ok();
+            }catch(ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
