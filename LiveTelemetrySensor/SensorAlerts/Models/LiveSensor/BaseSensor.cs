@@ -24,7 +24,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
         {
             SensedParamName = sensedParamName.ToLower();
             AdditionalRequirements = additionalRequirements;
-            CurrentSensorState = SensorState.NEUTRAL;
+            CurrentSensorState = SensorState.NORMAL;
         }
 
         protected bool UpdateSensorState(SensorState newState)
