@@ -76,6 +76,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                 throw new ArgumentException("Unable to deserialize telemetry frame \n" + JTeleData+"");
 
             lowerCaseParameterNames(telemetryFrame);
+            List<Alert> alertsInFrame = new List<Alert>();
             _redisCacheHandler.CacheTeleData(telemetryFrame);
             foreach(var sensor in _sensorsContainer.GetAllSensors())
             {
@@ -85,7 +86,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             foreach(var dynamicSensor in _sensorsContainer.GetDynamicLiveSensors())
             {
                 bool stateUpdated = dynamicSensor.Sense();
-                await handleSensorStateAsync(stateUpdated, dynamicSensor, telemetryFrame.TimeStamp);
+                await handleSensorStateAsync(stateUpdated, dynamicSensor, alertsInFrame);
             }
 
             foreach (var teleParam in telemetryFrame.Parameters)
@@ -93,11 +94,19 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                 if (!_sensorsContainer.hasSensor(teleParam.Name)) continue;
                 ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParam.Name);
                 bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value));
-                await handleSensorStateAsync(stateUpdated, parameterSensor, telemetryFrame.TimeStamp);
+                await handleSensorStateAsync(stateUpdated, parameterSensor, alertsInFrame);
+            }
+            if (alertsInFrame.Count > 0)
+            {
+                await _mongoAlertsService.InsertAlerts(new Alerts()
+                {
+                    TimeStamp = telemetryFrame.TimeStamp.ToUnix(),
+                    MongoAlerts = alertsInFrame
+                });
             }
         }
 
-        private async Task handleSensorStateAsync(bool stateUpdated, BaseSensor sensor, DateTime timestamp)
+        private async Task handleSensorStateAsync(bool stateUpdated, BaseSensor sensor, List<Alert> alertsInFrame)
         {
             if (stateUpdated)
             {
@@ -107,12 +116,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                     CurrentStatus = sensor.CurrentSensorState
                 });
 
-                await _mongoAlertsService.InsertAlert(new Alert()
-                {
-                    SensorName = sensor.SensedParamName,
-                    SensorStatus = sensor.CurrentSensorState,
-                    TimeStamp = timestamp.ToUnix()
-                });
+                alertsInFrame.Add(
+                    new Alert()
+                    {
+                        SensorName = sensor.SensedParamName,
+                        SensorStatus = sensor.CurrentSensorState,
+
+                    });
+
                 //telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
             }
         }
