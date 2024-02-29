@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using Newtonsoft.Json;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
+using LiveTelemetrySensor.SensorAlerts.Models.Interfaces;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
@@ -16,18 +18,23 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
     public class LiveSensorAlertsController : Controller
     {
         private SensorAlertsService _sensorAlerts;
-        private TeleProcessorService _teleProcessor;
+        private SensorsContainer _sensorsContainer;
         
-        public LiveSensorAlertsController(SensorAlertsService sensorAlertsService, TeleProcessorService teleProcessor) 
+        public LiveSensorAlertsController(SensorAlertsService sensorAlertsService, SensorsContainer sensorsContainer) 
         {
             _sensorAlerts = sensorAlertsService;
-            _teleProcessor = teleProcessor;
+            _sensorsContainer = sensorsContainer;
         }
 
         [HttpGet]
         public ActionResult GetSensorsState()
         {
-            return Ok(JsonConvert.SerializeObject(_teleProcessor.GetSensorsState().ToArray()));
+            return Ok(JsonConvert.SerializeObject(
+                _sensorsContainer.GetAllSensors().Select((sensor) => new SensorAlertDto()
+            {
+                SensorName = sensor.SensedParamName,
+                CurrentStatus = sensor.CurrentSensorState
+            }).ToArray()));
         }
 
         [HttpPut("state")]

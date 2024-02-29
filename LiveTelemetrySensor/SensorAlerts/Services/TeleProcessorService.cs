@@ -31,20 +31,6 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _mongoAlertsService = mongoAlertsService;
         }
 
-        public bool HasSensor(string sensorName)
-        {
-            return _sensorsContainer.hasSensor(sensorName);
-        }
-
-        public IEnumerable<SensorAlertDto> GetSensorsState()
-        {
-            return _sensorsContainer.GetAllSensors().Select((sensor) => new SensorAlertDto()
-            {
-                SensorName = sensor.SensedParamName,
-                CurrentStatus = sensor.CurrentSensorState
-            });
-        }
-
         public void AddSensorsToUpdate(IEnumerable<BaseSensor> liveSensors)
         {
             foreach (var liveSensor in liveSensors)
