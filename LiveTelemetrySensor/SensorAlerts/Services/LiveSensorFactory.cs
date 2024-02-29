@@ -35,7 +35,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                 //new SensorProperties("Altitude", new RequirementRange(0, 10000), new RequirementRange(10000, 20000), new RequirementRange(20000, 50000), "When Longitude is lower than 120 for 1 to 2 minutes"),
                 //new SensorProperties("Longitude", new RequirementRange(-180, 170), new RequirementRange(170, 175), new RequirementRange(175, 180), "When Wind_Speed is higher than 176 for less than 3 seconds"),
                 //new SensorProperties("Wind_Speed", new RequirementRange(0, 55), new RequirementRange(55, 60), new RequirementRange(60, 70), "When Altitude is over 10000 for at least 3 seconds"),
-                new SensorProperties("Engine_Heat", new RequirementRange(0, 176), new RequirementRange(73230, 132350), new RequirementRange(0, 300), "When engine_heat is over 176 for 10 seconds")
+                new SensorProperties("Engine_Heat", new RequirementRange(0, 176), new RequirementRange(73230, 132350), new RequirementRange(0, 300), "When engine_heat is over 176 for 10 seconds"),
             };
         }
 

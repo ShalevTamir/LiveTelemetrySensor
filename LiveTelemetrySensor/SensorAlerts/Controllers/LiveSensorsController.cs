@@ -5,7 +5,10 @@ using LiveTelemetrySensor.SensorAlerts.Services;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PdfExtractor.Models.Requirement;
+using Spire.Additions.Xps.Schema;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -33,6 +36,19 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         public async Task<ActionResult> ParseSensor(string sensorRequirements)
         {
             var parsedSensorRequirements = await _additionalParser.Parse(sensorRequirements);
+            IEnumerable<string> invalidRangeParameters = parsedSensorRequirements
+                .Where((sensorRequirement) =>
+                (sensorRequirement.Requirement is RequirementRange range && !range.IsValidRange()) ||
+                (sensorRequirement.Duration != null && sensorRequirement.Duration.Requirement is RequirementRange durationRange && !durationRange.IsValidRange()))
+                .Select((invalidSensorRequirement) => invalidSensorRequirement.ParameterName);
+
+            if(invalidRangeParameters.Count() != 0)
+            {
+                return BadRequest(string.Format("Invalid range for {0} {1}",
+                    invalidRangeParameters.Count() == 1 ? "parameter": "parameters",
+                    string.Join(", ",invalidRangeParameters)));
+            }
+
             return Ok(JsonConvert.SerializeObject(
                 parsedSensorRequirements.Select((SensorRequirement sensorRequirement) =>
                 {
