@@ -24,9 +24,19 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Network
                 "application/json"
             );
             HttpResponseMessage response = await _httpClient.PostAsync(uri, requestContent);
-            response.EnsureSuccessStatusCode();
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            return jsonResponse;
+            return await handleResponseAsync(response);
+        }
+
+        public async Task<string> GetAsync(string uri)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(uri);
+            return await handleResponseAsync(response);
+        }
+
+        public async Task<DeserializedClass> GetAsync<DeserializedClass>(string uri)
+        {
+            string jsonResponse = await GetAsync(uri);
+            return JsonSerializer.Deserialize<DeserializedClass>(jsonResponse);
         }
         public async Task<DeserializedClass> PostAsync<DeserializedClass>(string uri, Object toSend)
         {
@@ -34,5 +44,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Network
             return JsonSerializer.Deserialize<DeserializedClass>(jsonResponse);
         }
 
+        private async Task<string> handleResponseAsync(HttpResponseMessage response)
+        {
+            response.EnsureSuccessStatusCode();
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            return jsonResponse;
+        }
     }
 }

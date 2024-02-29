@@ -24,7 +24,13 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Extentions
             return CompareValues(ValueToCompare(requirement), ValueToCompare(requirementToCompare));
         }
 
-        
+        public static bool IsValid(this RequirementParam requirement)
+        {
+            if (requirement is RequirementRange requirementRange)
+                return requirementRange.IsValidRange();
+            else
+                return true;
+        }
 
         private static double ValueToCompare(RequirementParam requirement)
         {

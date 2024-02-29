@@ -23,10 +23,10 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         private SensorsContainer _sensorsContainer;
         private MongoAlertsService _mongoAlertsService;
 
-        public TeleProcessorService(CommunicationService communicationService, RedisCacheHandler redisCacheHandler, MongoAlertsService mongoAlertsService)
+        public TeleProcessorService(CommunicationService communicationService, RedisCacheHandler redisCacheHandler, MongoAlertsService mongoAlertsService, SensorsContainer sensorsContainer)
         {
             _communicationService = communicationService;
-            _sensorsContainer = new SensorsContainer();
+            _sensorsContainer = sensorsContainer;
             _redisCacheHandler = redisCacheHandler;
             _mongoAlertsService = mongoAlertsService;
         }

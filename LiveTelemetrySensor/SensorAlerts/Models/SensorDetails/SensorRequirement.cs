@@ -1,4 +1,6 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+﻿using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
+using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using PdfExtractor.Models.Requirement;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
@@ -19,6 +21,25 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
             RequirementStatus = RequirementStatus.REQUIREMENT_NOT_MET;
         }
 
+        public bool IsValid()
+        {
+            return Requirement.IsValid() && (Duration == null || Duration.Requirement.IsValid());
+        }
+
+        public SensorRequirementDto ToRequirementDto()
+        {
+            var sensorRequirementDto = new SensorRequirementDto
+            {
+                ParameterName = ParameterName,
+                Requirement = new RequirementDto(Requirement),
+
+            };
+            if (Duration != null)
+            {
+                sensorRequirementDto.Duration = new DurationDto(Duration);
+            }
+            return sensorRequirementDto;
+        }
 
     }
 }

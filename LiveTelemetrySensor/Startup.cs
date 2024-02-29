@@ -10,6 +10,7 @@ using StackExchange.Redis;
 using LiveTelemetrySensor.Redis.Services;
 using LiveTelemetrySensor.SensorAlerts.Hubs;
 using LiveTelemetrySensor.Mongo.Services;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
 
 namespace LiveTelemetrySensor
 {
@@ -38,6 +39,7 @@ namespace LiveTelemetrySensor
             services.AddSingleton<RedisCacheService>();
             services.AddSingleton<RedisCacheHandler>();
             services.AddSingleton<MongoAlertsService>();
+            services.AddSingleton<SensorsContainer>();
             services.AddHostedService<StartupService>();
 
             services.AddControllers();
