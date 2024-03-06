@@ -11,6 +11,7 @@ using LiveTelemetrySensor.Redis.Services;
 using LiveTelemetrySensor.SensorAlerts.Hubs;
 using LiveTelemetrySensor.Mongo.Services;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
+using System.Diagnostics;
 
 namespace LiveTelemetrySensor
 {
@@ -34,7 +35,16 @@ namespace LiveTelemetrySensor
             services.AddSingleton<AdditionalParser>();
             services.AddSingleton<RequestsService>();
             services.AddSingleton<IConnectionMultiplexer>(provider =>
-                ConnectionMultiplexer.Connect(Configuration["Redis:Configuration:ServerAdress"] + ",allowAdmin=true")
+            {
+                ConfigurationOptions options = new ConfigurationOptions()
+                {
+                    ConnectTimeout = 1000,
+                    AllowAdmin = true,
+                    AbortOnConnectFail = false,
+                    SyncTimeout = 2147483647,
+                };
+                return ConnectionMultiplexer.Connect(Configuration["Redis:Configuration:ServerAdress"] + "," + options);
+            }
             );
             services.AddSingleton<RedisCacheService>();
             services.AddSingleton<RedisCacheHandler>();
