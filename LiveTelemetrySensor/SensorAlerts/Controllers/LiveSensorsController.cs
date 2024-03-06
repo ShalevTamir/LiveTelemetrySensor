@@ -41,10 +41,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         }
 
         [HttpGet("parse-sensor")]
-        public async Task<ActionResult> ParseSensor(string sensorName, string sensorRequirements)
+        public async Task<IActionResult> ParseSensor(string sensorName, string sensorRequirements)
         {
             try
             {
+                //return status code instead of exceptions
                 EnsureNoDuplicateSensor(sensorName);
                 var parsedSensorRequirements = await _additionalParser.Parse(sensorRequirements);
                 await EnsureNoUnkownParametersAsync(parsedSensorRequirements);
@@ -123,7 +124,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         {
             if (_sensorsContainer.hasSensor(sensorName))
             {
-                throw new ArgumentException("Sensor with name " + sensorName + " already exists, please choose a different name");
+                throw new ArgumentException("Sensor with name " + sensorName + " already exists");
             }
         }
             private IEnumerable<string> GetInvalidRangeParameters(SensorRequirement[] sensorRequirements)

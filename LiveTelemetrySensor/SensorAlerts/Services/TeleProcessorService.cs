@@ -58,6 +58,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         public async Task ProcessTeleDataAsync(string JTeleData)
         {
             var telemetryFrame = JsonConvert.DeserializeObject<TelemetryFrameDto>(JTeleData);
+            //TODO: not don't exception
             if (telemetryFrame == null)
                 throw new ArgumentException("Unable to deserialize telemetry frame \n" + JTeleData+"");
 
@@ -77,10 +78,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
             foreach (var teleParam in telemetryFrame.Parameters)
             {
-                if (!_sensorsContainer.hasSensor(teleParam.Name)) continue;
-                ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParam.Name);
-                bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value));
-                await handleSensorStateAsync(stateUpdated, parameterSensor, alertsInFrame);
+                if (_sensorsContainer.hasSensor(teleParam.Name)){
+                    ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParam.Name);
+                    bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value));
+                    await handleSensorStateAsync(stateUpdated, parameterSensor, alertsInFrame);
+                }
             }
             if (alertsInFrame.Count > 0)
             {
