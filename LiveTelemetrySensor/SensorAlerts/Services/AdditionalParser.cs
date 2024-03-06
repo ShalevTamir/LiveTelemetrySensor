@@ -48,9 +48,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                     return sensor;
                 }).ToArray();
             }
-            catch(AggregateException ae)
+            catch(HttpRequestException e)
             {
-                ae.HandleExceptions(typeof(HttpRequestException));
+                Debug.WriteLine(e);
                 return new SensorRequirement[] { };
             }
         }
