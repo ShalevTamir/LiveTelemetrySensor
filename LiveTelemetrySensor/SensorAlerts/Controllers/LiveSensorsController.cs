@@ -59,6 +59,21 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             }
         }
 
+        [HttpGet("sensor-requirements")]
+        public IActionResult GetSensorRequirements(string sensorName)
+        {
+            if (_sensorsContainer.hasSensor(sensorName))
+            {
+                return Ok(JsonConvert.SerializeObject(
+                    _sensorsContainer.GetSensor(sensorName)?.AdditionalRequirements)
+                    );
+            }
+            else
+            {
+                return BadRequest("Sensor " + sensorName + " doesn't exist");
+            }
+        }
+
         [HttpPost("add-sensor")]
         public ActionResult AddDynamicSensor([FromBody] DynamicSensorDto dynamicSensorDto)
         {
