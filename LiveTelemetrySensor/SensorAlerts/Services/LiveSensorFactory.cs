@@ -49,12 +49,27 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
         public IEnumerable<Task<BaseSensor>> BuildLiveSensors()
         {
-           return BuildTestProperties().Select(
+           return BuildSensorProperties().Select(
                async (sensor) => await BuildLiveSensor(
                    sensor.TelemetryParamName,
                    sensor.AdditionalRequirement,
                    sensor.Requirements
                ));
+        }
+
+        public IEnumerable<Task<BaseSensor>> BuildLiveSensors(IEnumerable<SensorProperties> sensorProperties)
+        {
+            return sensorProperties.Select(
+                async (sensor) => await BuildLiveSensor(
+                    sensor.TelemetryParamName,
+                    sensor.AdditionalRequirement,
+                    sensor.Requirements
+                ));
+        }
+
+        public async Task<IEnumerable<BaseSensor>> BuildLiveSensorsAsync(IEnumerable<SensorProperties> sensorProperties)
+        {
+            return await Task.WhenAll(BuildLiveSensors(sensorProperties));
         }
 
     }

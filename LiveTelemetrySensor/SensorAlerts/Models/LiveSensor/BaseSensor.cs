@@ -10,6 +10,7 @@ using System.Linq;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.Redis.Services;
+using Newtonsoft.Json;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
 {
@@ -17,6 +18,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
     {
         public readonly string SensedParamName;
         public readonly IEnumerable<SensorRequirement> AdditionalRequirements;
+        [JsonIgnore]
         public SensorState CurrentSensorState { get; private set; }
 
 

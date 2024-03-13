@@ -17,7 +17,7 @@ namespace LiveTelemetrySensor.Mongo.Services
             var databaseSettings = configuration.GetSection(MONGO_DB_KEY).Get<AlertsDatabaseSettings>();
             var mongoClient = new MongoClient(databaseSettings.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(databaseSettings.DatabaseName);
-            _alertsCollection = mongoDatabase.GetCollection<Models.Alerts>(databaseSettings.CollectionName);
+            _alertsCollection = mongoDatabase.GetCollection<Alerts>(databaseSettings.CollectionName);
         }
 
         public async Task InsertAlerts(Alerts alert) =>

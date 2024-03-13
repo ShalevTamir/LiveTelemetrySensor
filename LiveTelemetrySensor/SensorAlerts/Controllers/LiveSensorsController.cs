@@ -6,12 +6,18 @@ using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PdfExtractor.Models;
 using PdfExtractor.Models.Requirement;
+using PdfExtractor.Services;
+using SharpCompress.Common;
 using Spire.Additions.Xps.Schema;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
@@ -26,18 +32,21 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         private TeleProcessorService _teleProcessor;
         private SensorsContainer _sensorsContainer;
         private RequestsService _requestsService;
+        private LiveSensorFactory _liveSensorFactory;
         private const string LIVE_DATA_URL = "https://localhost:5003";
 
         public LiveSensorsController(
             TeleProcessorService teleProcessor,
             AdditionalParser additionalParser,
             SensorsContainer sensorsContainer,
-            RequestsService requestsService)
+            RequestsService requestsService,
+            LiveSensorFactory liveSensorFactory)
         {
             _additionalParser = additionalParser;
             _teleProcessor = teleProcessor;
             _sensorsContainer = sensorsContainer;
             _requestsService = requestsService;
+            _liveSensorFactory = liveSensorFactory;
         }
 
         [HttpGet("parse-sensor")]
@@ -64,8 +73,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         {
             if (_sensorsContainer.hasSensor(sensorName))
             {
+                var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new IgnorePropertiesContractResolver(new string[] { "SensedParamName" })
+                };
                 return Ok(JsonConvert.SerializeObject(
-                    _sensorsContainer.GetSensor(sensorName)?.AdditionalRequirements)
+                    _sensorsContainer.GetSensor(sensorName), settings)
                     );
             }
             else
@@ -74,11 +87,13 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             }
         }
 
+
         [HttpPost("add-sensor")]
         public ActionResult AddDynamicSensor([FromBody] DynamicSensorDto dynamicSensorDto)
         {
             try
             {
+                //TODO: Parse requirement directly with defaultValueHandling instead of converting to requirement
                 _teleProcessor.AddSensorToUpdate(new DynamicLiveSensor(
                     dynamicSensorDto.SensorName,
                     dynamicSensorDto.Requirements.Select((requirmentDto) => requirmentDto.ToSensorRequirement()).ToArray()
@@ -103,6 +118,14 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        [HttpPost("sensors-requirements")]
+        public async Task<ActionResult> ParseParameterSensors([FromForm] IFormFile file)
+        {
+            IEnumerable<SensorProperties> parsedProperties = TableProccessor.Instance.ProccessTable(file.OpenReadStream());
+            IEnumerable<BaseSensor> sensors = await _liveSensorFactory.BuildLiveSensorsAsync(parsedProperties);
+            return Ok(JsonConvert.SerializeObject(sensors));
         }
 
         private void ValidateSensorRequirements(SensorRequirement[] parsedSensorRequirements)

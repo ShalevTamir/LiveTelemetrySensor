@@ -1,6 +1,7 @@
 ﻿using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
+using Newtonsoft.Json;
 using PdfExtractor.Models.Requirement;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
@@ -9,7 +10,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.SensorDetails
     {
         public readonly string ParameterName;
         public readonly RequirementParam Requirement;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public readonly Duration? Duration;
+
+        [JsonIgnore]
         public RequirementStatus RequirementStatus { get; set; }
 
 
