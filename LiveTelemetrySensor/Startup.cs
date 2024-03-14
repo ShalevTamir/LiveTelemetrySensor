@@ -34,6 +34,7 @@ namespace LiveTelemetrySensor
             services.AddSingleton<SensorAlertsService>();
             services.AddSingleton<AdditionalParser>();
             services.AddSingleton<RequestsService>();
+            services.AddSingleton<SensorValidator>();
             services.AddSingleton<IConnectionMultiplexer>(provider =>
             {
                 ConfigurationOptions options = new ConfigurationOptions()

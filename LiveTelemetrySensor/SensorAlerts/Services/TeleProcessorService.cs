@@ -3,8 +3,10 @@ using LiveTelemetrySensor.Mongo.Models;
 using LiveTelemetrySensor.Mongo.Services;
 using LiveTelemetrySensor.Redis.Services;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
+using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor;
+using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.ValidationResults;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
 using Newtonsoft.Json;
 using System;
@@ -22,37 +24,49 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         private RedisCacheHandler _redisCacheHandler;
         private SensorsContainer _sensorsContainer;
         private MongoAlertsService _mongoAlertsService;
+        private SensorValidator _sensorValidator;
 
-        public TeleProcessorService(CommunicationService communicationService, RedisCacheHandler redisCacheHandler, MongoAlertsService mongoAlertsService, SensorsContainer sensorsContainer)
+        public TeleProcessorService(
+            CommunicationService communicationService,
+            RedisCacheHandler redisCacheHandler,
+            MongoAlertsService mongoAlertsService,
+            SensorsContainer sensorsContainer,
+            SensorValidator sensorValidator)
         {
             _communicationService = communicationService;
             _sensorsContainer = sensorsContainer;
             _redisCacheHandler = redisCacheHandler;
             _mongoAlertsService = mongoAlertsService;
+            _sensorValidator = sensorValidator;
         }
 
-        public void AddSensorsToUpdate(IEnumerable<BaseSensor> liveSensors)
+        public SensorValidationResult AddSensorsToUpdate(IEnumerable<BaseSensor> liveSensors)
         {
-            foreach (var liveSensor in liveSensors)
+            var validationResults = liveSensors.Select(sensor => AddSensorToUpdate(sensor));
+            var invalidResult = validationResults.FirstOrDefault(validationResult => !validationResult.IsValid());
+            return invalidResult == null ? new ValidSensorResult() : invalidResult;
+        }
+
+        public SensorValidationResult AddSensorToUpdate(BaseSensor liveSensor)
+        {
+            var nameValidation = _sensorValidator.SensorNameValidation(liveSensor.SensedParamName);
+            if (nameValidation.IsValid())
             {
-                AddSensorToUpdate(liveSensor);
+                _sensorsContainer.InsertSensor(liveSensor);
+                _redisCacheHandler.AddRelevantRequirements(liveSensor);
             }
+            return nameValidation;
+
         }
 
-        public void AddSensorToUpdate(BaseSensor liveSensor)
+        public SensorValidationResult RemoveSensorToUpdate(string sensorName)
         {
-            if (_sensorsContainer.hasSensor(liveSensor))
-                throw new ArgumentException("Sensor " + liveSensor.SensedParamName + " already exists\n duplicate sensors are forbidden");
-
-            _sensorsContainer.InsertSensor(liveSensor);
-            _redisCacheHandler.AddRelevantRequirements(liveSensor);
-        }
-
-        public void RemoveSensorToUpdate(string sensorName)
-        {
-            bool removed = _sensorsContainer.RemoveSensor(sensorName);
-            if (!removed)
-                throw new ArgumentException("Sensor " + sensorName + " doesn't exist");
+            var validation = _sensorValidator.CheckSensorExists(sensorName);
+            if (validation.IsValid())
+            {
+                _sensorsContainer.RemoveSensor(sensorName);
+            }
+            return validation;
         }
        
         public async Task ProcessTeleDataAsync(string JTeleData)

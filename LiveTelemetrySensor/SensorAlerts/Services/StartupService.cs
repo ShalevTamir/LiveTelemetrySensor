@@ -23,11 +23,8 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<Task<BaseSensor>> liveSensors = _liveSensorFactory.BuildLiveSensors();
-            foreach(var sensorTask in liveSensors)
-            {
-                _teleProcessorService.AddSensorToUpdate(await sensorTask);
-            }
+            Task<IEnumerable<BaseSensor>> liveSensors = _liveSensorFactory.BuildDefaultLiveSensorsAsync();
+            _teleProcessorService.AddSensorsToUpdate(await liveSensors);
             _sensorAlertsService.ChangeState(RunningState.START);
         }
 
