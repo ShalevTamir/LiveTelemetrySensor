@@ -62,7 +62,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
 
         public BaseSensor? GetSensor(string sensorName)
         {
-            return (BaseSensor)GetParameterLiveSensor(sensorName) ?? GetDynamicLiveSensor(sensorName);
+            return (BaseSensor?)GetParameterLiveSensor(sensorName) ?? GetDynamicLiveSensor(sensorName);
         }
 
         public IEnumerable<BaseSensor> GetAllSensors()

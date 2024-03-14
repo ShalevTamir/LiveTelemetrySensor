@@ -87,8 +87,21 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
             }
         }
 
+        [HttpPost("add-parameter-sensors")]
+        public IActionResult AddParameterSensors([FromBody] ParameterSensorDto[] parameterSensors)
+        {
+            try
+            {
+                _teleProcessor.AddSensorsToUpdate(parameterSensors.Select(parameterSensorDto => parameterSensorDto.ToLiveSensor()).ToArray());
 
-        [HttpPost("add-sensor")]
+            }catch(ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            return Ok();
+        }
+
+        [HttpPost("add-dynamic-sensor")]
         public ActionResult AddDynamicSensor([FromBody] DynamicSensorDto dynamicSensorDto)
         {
             try
@@ -124,8 +137,8 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         public async Task<ActionResult> ParseParameterSensors([FromForm] IFormFile file)
         {
             IEnumerable<SensorProperties> parsedProperties = TableProccessor.Instance.ProccessTable(file.OpenReadStream());
-            IEnumerable<BaseSensor> sensors = await _liveSensorFactory.BuildLiveSensorsAsync(parsedProperties);
-            return Ok(JsonConvert.SerializeObject(sensors));
+            var sensors = await _liveSensorFactory.BuildLiveSensorsAsync(parsedProperties);
+            return Ok(JsonConvert.SerializeObject(sensors.Select(parameterSensor => parameterSensor.ToParameterSensorDto()).ToArray()));
         }
 
         private void ValidateSensorRequirements(SensorRequirement[] parsedSensorRequirements)

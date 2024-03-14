@@ -1,10 +1,12 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+﻿using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
+using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using PdfExtractor.Models.Enums;
 using PdfExtractor.Models.Requirement;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor
 {
@@ -33,6 +35,16 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.LiveSensor
             }
 
             return false;
+        }
+
+        public ParameterSensorDto ToParameterSensorDto()
+        {
+            return new ParameterSensorDto()
+            {
+                SensorName = SensedParamName,
+                AdditionalRequirements = AdditionalRequirements.Select((additionalRequirement) => additionalRequirement.ToRequirementDto()).ToArray(),
+                Requirements = Requirements.Select((requirement) => new RequirementModelDto(requirement)).ToArray()
+            };
         }
 
        
