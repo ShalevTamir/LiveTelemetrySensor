@@ -41,11 +41,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
             return AdditionalRequirements.All((sensorRequirement) => sensorRequirement.RequirementStatus == RequirementStatus.REQUIREMENT_MET);
         }
 
-        public void UpdateAdditionalRequirementStatus(Func<SensorRequirement, RequirementStatus> UpdateDurationStatus)
+        public void UpdateAdditionalRequirementStatus(Func<SensorRequirement, RequirementStatus> UpdateRequirementStatusCallback)
         {
             foreach(var sensorRequirement in AdditionalRequirements)
             {
-                UpdateDurationStatus(sensorRequirement);
+                UpdateRequirementStatusCallback(sensorRequirement);
             }
         }
 

@@ -25,10 +25,21 @@ namespace LiveTelemetrySensor.Redis.Services
         //private const long RETENTION_MARGIN_IN_MILLIS = 2000;
 
         private RedisCacheService _redisCaheService;
-        public RedisCacheHandler(RedisCacheService cacheService)
+        private SensorsContainer _sensorContainer;
+        public RedisCacheHandler(RedisCacheService cacheService, SensorsContainer sensorsContainer)
         {
+            _sensorContainer = sensorsContainer;
             _redisCaheService = cacheService;
             _redisCaheService.FlushAll();
+        }
+
+        public void ProcessFrame(TelemetryFrameDto frame)
+        {
+            CacheTeleData(frame);
+            foreach(var sensor in _sensorContainer.GetAllSensors())
+            {
+                sensor.UpdateAdditionalRequirementStatus(UpdateRequirementStatus);
+            }
         }
 
         //Stores all parameters with duration
@@ -41,7 +52,7 @@ namespace LiveTelemetrySensor.Redis.Services
         }
 
         //Receives a telmetry frame, cashes the relevant information
-        public void CacheTeleData(TelemetryFrameDto teleFrame)
+        private void CacheTeleData(TelemetryFrameDto teleFrame)
         {
             foreach (var telemetryParameter in
                 teleFrame.Parameters.Where(param => _redisCaheService.HasTimeSeries(param.Name)))
@@ -56,7 +67,7 @@ namespace LiveTelemetrySensor.Redis.Services
         //Checks if the requirement has been met for the duration - iterates over all cached values
         //If a duration requirement already met - only checks current latest param value to match requirement
         // sometimes delete all samples?
-        public RequirementStatus UpdateRequirementStatus(SensorRequirement sensorRequirement)
+        private RequirementStatus UpdateRequirementStatus(SensorRequirement sensorRequirement)
         {
             ReuploadToRedis(sensorRequirement);
 

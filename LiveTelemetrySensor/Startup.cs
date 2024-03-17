@@ -51,6 +51,7 @@ namespace LiveTelemetrySensor
             services.AddSingleton<RedisCacheHandler>();
             services.AddSingleton<MongoAlertsService>();
             services.AddSingleton<SensorsContainer>();
+            services.AddSingleton<SensorsStateHandler>();
             services.AddHostedService<StartupService>();
 
             services.AddControllers();

@@ -25,19 +25,22 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         private SensorsContainer _sensorsContainer;
         private MongoAlertsService _mongoAlertsService;
         private SensorValidator _sensorValidator;
+        private SensorsStateHandler _sensorsStateHandler;
 
         public TeleProcessorService(
             CommunicationService communicationService,
             RedisCacheHandler redisCacheHandler,
             MongoAlertsService mongoAlertsService,
             SensorsContainer sensorsContainer,
-            SensorValidator sensorValidator)
+            SensorValidator sensorValidator,
+            SensorsStateHandler sensorsStateHandler)
         {
             _communicationService = communicationService;
             _sensorsContainer = sensorsContainer;
             _redisCacheHandler = redisCacheHandler;
             _mongoAlertsService = mongoAlertsService;
             _sensorValidator = sensorValidator;
+            _sensorsStateHandler = sensorsStateHandler;
         }
 
         public SensorValidationResult AddSensorsToUpdate(IEnumerable<BaseSensor> liveSensors)
@@ -72,62 +75,20 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         public async Task ProcessTeleDataAsync(string JTeleData)
         {
             var telemetryFrame = JsonConvert.DeserializeObject<TelemetryFrameDto>(JTeleData);
-            //TODO: not don't exception
-            if (telemetryFrame == null)
-                throw new ArgumentException("Unable to deserialize telemetry frame \n" + JTeleData+"");
-
-            lowerCaseParameterNames(telemetryFrame);
-            List<Alert> alertsInFrame = new List<Alert>();
-            _redisCacheHandler.CacheTeleData(telemetryFrame);
-            foreach(var sensor in _sensorsContainer.GetAllSensors())
+            if(telemetryFrame != null)
             {
-                sensor.UpdateAdditionalRequirementStatus(_redisCacheHandler.UpdateRequirementStatus);
+                lowerCaseParameterNames(telemetryFrame);
+                _redisCacheHandler.ProcessFrame(telemetryFrame);
+                _mongoAlertsService.OpenNewFrame();
+                await _sensorsStateHandler.UpdateDynamicSensorsAsync();
+                await _sensorsStateHandler.UpdateParameterSensorsAsync(telemetryFrame.Parameters);
+                await _mongoAlertsService.InsertCurrentFrameAsync(telemetryFrame.TimeStamp);
+            }
+            else
+            {
+                Debug.WriteLine("Unable to deserialize frame " + JTeleData);
             }
 
-            foreach(var dynamicSensor in _sensorsContainer.GetDynamicLiveSensors())
-            {
-                bool stateUpdated = dynamicSensor.Sense();
-                await handleSensorStateAsync(stateUpdated, dynamicSensor, alertsInFrame);
-            }
-
-            foreach (var teleParam in telemetryFrame.Parameters)
-            {
-                if (_sensorsContainer.hasSensor(teleParam.Name)){
-                    ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParam.Name);
-                    bool stateUpdated = parameterSensor.Sense(double.Parse(teleParam.Value));
-                    await handleSensorStateAsync(stateUpdated, parameterSensor, alertsInFrame);
-                }
-            }
-            if (alertsInFrame.Count > 0)
-            {
-                await _mongoAlertsService.InsertAlerts(new Alerts()
-                {
-                    TimeStamp = telemetryFrame.TimeStamp.ToUnix(),
-                    MongoAlerts = alertsInFrame
-                });
-            }
-        }
-
-        private async Task handleSensorStateAsync(bool stateUpdated, BaseSensor sensor, List<Alert> alertsInFrame)
-        {
-            if (stateUpdated)
-            {
-                await _communicationService.SendSensorAlertAsync(new SensorAlertDto()
-                {
-                    SensorName = sensor.SensedParamName,
-                    CurrentStatus = sensor.CurrentSensorState
-                });
-
-                alertsInFrame.Add(
-                    new Alert()
-                    {
-                        SensorName = sensor.SensedParamName,
-                        SensorStatus = sensor.CurrentSensorState,
-
-                    });
-
-                //telemetryFrame.Parameters.ToList().ForEach(p => Debug.WriteLine(p.Name + " " + p.Value));
-            }
         }
         
         private void lowerCaseParameterNames(TelemetryFrameDto frame)
