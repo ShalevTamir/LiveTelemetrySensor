@@ -9,10 +9,12 @@ using System;
 using System.Linq;
 using Newtonsoft.Json;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
-using LiveTelemetrySensor.SensorAlerts.Models.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
+    [Authorize]
     [Route("live-sensor-alerts")]
     [ApiController]
     public class LiveSensorAlertsController : Controller

@@ -1,5 +1,6 @@
 ﻿using LiveTelemetrySensor.Mongo.Models.Dtos;
 using LiveTelemetrySensor.Mongo.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace LiveTelemetrySensor.Mongo.Controllers
 {
+    [Authorize]
     [Route("mongo-alerts")]
     [ApiController]
     public class MongoAlertsController: Controller

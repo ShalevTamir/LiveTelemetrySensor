@@ -1,4 +1,4 @@
-using Confluent.Kafka;
+﻿using Confluent.Kafka;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 
 namespace LiveTelemetrySensor.SensorAlerts.Controllers
 {
+    [Authorize]
     [Route("live-sensors")]
     [ApiController]
     public class LiveSensorsController: Controller

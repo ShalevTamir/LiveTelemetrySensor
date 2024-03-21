@@ -13,5 +13,8 @@
 
         public const string PY_INF = "Infinity";
         public const string PY_NEG_INF = "-Infinity";
+
+        public const string JWT_KEY_PATH = "Jwt:Key";
+        public const string JWT_ISSUER_PATH = "Jwt:Issuer";
     }
 }
