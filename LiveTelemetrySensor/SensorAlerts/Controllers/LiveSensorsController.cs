@@ -1,4 +1,4 @@
-﻿using Confluent.Kafka;
+using Confluent.Kafka;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
@@ -7,6 +7,7 @@ using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
 using LiveTelemetrySensor.SensorAlerts.Services.Network;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -107,10 +108,18 @@ namespace LiveTelemetrySensor.SensorAlerts.Controllers
         }
 
         [HttpPost("sensors-requirements")]
-        public async Task<IActionResult> ParseParameterSensors([FromForm] IFormFile file)
+        public async Task<IActionResult> ParseParameterSensors([FromForm] List<IFormFile> files)
         {
-            IEnumerable<SensorProperties> parsedProperties = TableProccessor.Instance.ProccessTable(file.OpenReadStream());
-            var sensors = await _liveSensorFactory.BuildLiveSensorsAsync(parsedProperties);
+            ParameterLiveSensor[] sensors;
+            try
+            {
+                IEnumerable<SensorProperties> parsedProperties = files.SelectMany(file => TableProccessor.Instance.ProccessTable(file.FileName, file.OpenReadStream()));
+                sensors = await _liveSensorFactory.BuildParameterSensorsAsync(parsedProperties);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             return Ok(JsonConvert.SerializeObject(sensors.Select(parameterSensor => parameterSensor.ToParameterSensorDto()).ToArray()));
         }
 

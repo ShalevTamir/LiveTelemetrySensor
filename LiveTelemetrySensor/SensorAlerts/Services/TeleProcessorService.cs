@@ -75,9 +75,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         public async Task ProcessTeleDataAsync(string JTeleData)
         {
             var telemetryFrame = JsonConvert.DeserializeObject<TelemetryFrameDto>(JTeleData);
-            if(telemetryFrame != null)
+            if (telemetryFrame != null)
             {
-                lowerCaseParameterNames(telemetryFrame);
+                LowerCaseParameterNames(telemetryFrame);
                 _redisCacheHandler.ProcessFrame(telemetryFrame);
                 _mongoAlertsService.OpenNewFrame();
                 await _sensorsStateHandler.UpdateDynamicSensorsAsync();
@@ -91,9 +91,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
         }
         
-        private void lowerCaseParameterNames(TelemetryFrameDto frame)
+        private void LowerCaseParameterNames(TelemetryFrameDto frame)
         {
-            foreach(var parameter in frame.Parameters) 
+            foreach (var parameter in frame.Parameters) 
             {
                 parameter.Name = parameter.Name.ToLower();
             }

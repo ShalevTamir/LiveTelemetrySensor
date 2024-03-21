@@ -5,6 +5,7 @@ using PdfExtractor.Models;
 using PdfExtractor.Models.Requirement;
 using PdfExtractor.Services;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             _configuration = configuration;
             _additionalParser = additionalParser;
         }
-        private IEnumerable<SensorProperties> BuildSensorProperties()
+        private IEnumerable<SensorProperties> BuildDefaultSensorProperties()
         {
             string documentName = _configuration["SensorsProperties:DocumentName"];
             return TableProccessor.Instance.ProccessTable($"{SOURCE_PATH}/SensorAlerts/Documents/{documentName}.pdf");
@@ -47,24 +48,22 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
                 return new ParameterLiveSensor(sensorName, await _additionalParser.Parse(additionalRequirement), requirements);
          }
 
-        public async Task<IEnumerable<BaseSensor>> BuildDefaultLiveSensorsAsync()
+        public async Task<ParameterLiveSensor[]> BuildDefaultParameterSensorsAsync()
         {
-            return await BuildLiveSensorsAsync(BuildSensorProperties());
+            var sensorProperties = BuildDefaultSensorProperties();
+            return await BuildParameterSensorsAsync(sensorProperties);
         }
 
-        public IEnumerable<Task<ParameterLiveSensor>> BuildLiveSensors(IEnumerable<SensorProperties> sensorProperties)
+
+        public async Task<ParameterLiveSensor[]> BuildParameterSensorsAsync(IEnumerable<SensorProperties> sensorProperties)
         {
-            return sensorProperties.Select(
+            var sensorsTasks = sensorProperties.Select(
                 async (sensor) => (ParameterLiveSensor) await BuildLiveSensor(
                     sensor.TelemetryParamName,
                     sensor.AdditionalRequirement,
                     sensor.Requirements
                 ));
-        }
-
-        public async Task<IEnumerable<ParameterLiveSensor>> BuildLiveSensorsAsync(IEnumerable<SensorProperties> sensorProperties)
-        {
-            return await Task.WhenAll(BuildLiveSensors(sensorProperties));
+            return await Task.WhenAll(sensorsTasks);
         }
 
     }

@@ -17,7 +17,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 {
     public class AdditionalParser
     {
-        private string ADDITIONAL_PARSER_URI = "http://127.0.0.1:5000/sensor";
+        private string ADDITIONAL_PARSER_URI = "http://127.0.0.1:5000/sensor/";
         private RequestsService _requestsService;
         public AdditionalParser(RequestsService requestService) 
         {
