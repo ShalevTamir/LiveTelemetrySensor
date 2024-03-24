@@ -18,7 +18,7 @@ using LiveTelemetrySensor.SensorAlerts.Models;
 using System.Text;
 using System;
 using Microsoft.AspNetCore.Authorization;
-using LiveTelemetrySensor.Common.Middlewares;
+using JwtAuth.Middlewares;
 
 namespace LiveTelemetrySensor
 {
@@ -34,7 +34,6 @@ namespace LiveTelemetrySensor
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTokenAuthentication(Configuration);
             services.AddSingleton<CommunicationService>();
             services.AddSingleton<TeleProcessorService>();
             services.AddSingleton<LiveSensorFactory>();
@@ -77,29 +76,7 @@ namespace LiveTelemetrySensor
                     options.PayloadSerializerOptions.PropertyNamingPolicy = null;
                 });
 
-
-            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            //    .AddJwtBearer(options =>
-            //    {
-            //        string issuer = Configuration[Constants.JWT_ISSUER_PATH], key = Configuration[Constants.JWT_KEY_PATH];
-            //        Debug.WriteLine(issuer + " " + key + " BDSABJKDBAJSKBDJASJK");
-            //        options.TokenValidationParameters = new TokenValidationParameters
-            //        {
-            //            ValidateIssuer = false,
-            //            ValidateLifetime = true,
-            //            ValidateIssuerSigningKey = false,
-            //            ValidateAudience = false,
-            //            //ValidIssuer = issuer,
-            //            //ValidAudience = issuer,
-            //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
-            //        };
-            //    });
-            //services.AddAuthorization(options =>
-            //{
-            //    options.DefaultPolicy = new AuthorizationPolicyBuilder()
-            //        .RequireAuthenticatedUser()
-            //        .Build();
-            //});
+            services.AddTokenAuthentication();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

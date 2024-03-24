@@ -21,10 +21,14 @@
     <PackageReference Include="NRedisTimeSeries" Version="1.4.0" />
     <PackageReference Include="Spire.PDF" Version="9.11.4" />
     <PackageReference Include="StackExchange.Redis" Version="2.7.4" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.4.1" />
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="JwtAuth">
+      <HintPath>..\..\JwtAuth\JwtAuth\bin\Debug\netcoreapp3.1\JwtAuth.dll</HintPath>
+    </Reference>
     <Reference Include="PdfExtractorNuget">
       <HintPath>..\..\PdfExtractorNuget\PdfExtractorNuget\bin\Debug\netcoreapp3.1\PdfExtractorNuget.dll</HintPath>
     </Reference>
