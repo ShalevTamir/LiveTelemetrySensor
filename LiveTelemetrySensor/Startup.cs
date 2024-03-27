@@ -76,7 +76,7 @@ namespace LiveTelemetrySensor
                     options.PayloadSerializerOptions.PropertyNamingPolicy = null;
                 });
 
-            services.AddTokenAuthentication();
+            services.AddTokenAuthentication(new string[] { SensorAlertsHub.Endpoint });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -98,7 +98,7 @@ namespace LiveTelemetrySensor
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<SensorAlertsHub>("/sensor-alerts-socket");
+                endpoints.MapHub<SensorAlertsHub>(SensorAlertsHub.Endpoint);
                 endpoints.MapControllers();
             });
         }
