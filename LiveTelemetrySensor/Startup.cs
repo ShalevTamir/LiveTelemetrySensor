@@ -19,6 +19,7 @@ using System.Text;
 using System;
 using Microsoft.AspNetCore.Authorization;
 using JwtAuth.Middlewares;
+using JwtAuth.Middlewares.Extentions;
 
 namespace LiveTelemetrySensor
 {
@@ -88,19 +89,20 @@ namespace LiveTelemetrySensor
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseTokenMessage();
             app.UseHttpsRedirection();
+            app.UseCors("CorsPolicy");
 
             app.UseAuthentication();
             app.UseRouting();
             app.UseAuthorization();
-
-            app.UseCors("CorsPolicy");
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<SensorAlertsHub>(SensorAlertsHub.Endpoint);
                 endpoints.MapControllers();
             });
+
+
         }
     }
 }
