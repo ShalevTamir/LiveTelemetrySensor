@@ -26,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="JwtAuth">
-      <HintPath>..\..\JwtAuth\JwtAuth\bin\Debug\netcoreapp3.1\JwtAuth.dll</HintPath>
+    <Reference Include="AuthService">
+      <HintPath>..\..\AuthService\AuthService\bin\Debug\netcoreapp3.1\AuthService.dll</HintPath>
     </Reference>
     <Reference Include="PdfExtractorNuget">
       <HintPath>..\..\PdfExtractorNuget\PdfExtractorNuget\bin\Debug\netcoreapp3.1\PdfExtractorNuget.dll</HintPath>

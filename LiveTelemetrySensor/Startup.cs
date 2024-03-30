@@ -18,8 +18,7 @@ using LiveTelemetrySensor.SensorAlerts.Models;
 using System.Text;
 using System;
 using Microsoft.AspNetCore.Authorization;
-using JwtAuth.Middlewares;
-using JwtAuth.Middlewares.Extentions;
+using AuthService.Middlewares.Extentions;
 
 namespace LiveTelemetrySensor
 {
