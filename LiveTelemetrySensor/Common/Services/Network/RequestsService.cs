@@ -6,17 +6,18 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Web.Http;
 using System.Web.Http.Results;
+using AuthService.Models;
 
-namespace LiveTelemetrySensor.SensorAlerts.Services.Network
+namespace LiveTelemetrySensor.Common.Services.Network
 {
     public class RequestsService
     {
         private HttpClient _httpClient;
-        public RequestsService()
+        public RequestsService(IHttpClientFactory clientFactory)
         {
-            _httpClient = new HttpClient();
+            _httpClient = clientFactory.CreateClient(Constants.HTTP_CLIENT_NAME);
         }
-        public async Task<string> PostAsync(string uri, Object toSend)
+        public async Task<string> PostAsync(string uri, object toSend)
         {
             StringContent requestContent = new StringContent(
                 JsonSerializer.Serialize(toSend),
@@ -33,12 +34,12 @@ namespace LiveTelemetrySensor.SensorAlerts.Services.Network
             return await handleResponseAsync(response);
         }
 
-        public async Task<DeserializedClass> GetAsync<DeserializedClass>(string uri)
+        public async Task<DeserializedClass?> GetAsync<DeserializedClass>(string uri) where DeserializedClass : class
         {
             string jsonResponse = await GetAsync(uri);
             return JsonSerializer.Deserialize<DeserializedClass>(jsonResponse);
         }
-        public async Task<DeserializedClass> PostAsync<DeserializedClass>(string uri, Object toSend)
+        public async Task<DeserializedClass?> PostAsync<DeserializedClass>(string uri, object toSend) where DeserializedClass : class
         {
             string jsonResponse = await PostAsync(uri, toSend);
             return JsonSerializer.Deserialize<DeserializedClass>(jsonResponse);
