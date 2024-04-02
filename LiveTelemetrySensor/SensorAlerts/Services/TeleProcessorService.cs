@@ -1,4 +1,3 @@
-using LiveTelemetrySensor.Common.Extentions;
 using LiveTelemetrySensor.Mongo.Models;
 using LiveTelemetrySensor.Mongo.Services;
 using LiveTelemetrySensor.Redis.Services;

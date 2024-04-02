@@ -1,6 +1,6 @@
 ﻿namespace LiveTelemetrySensor.SensorAlerts.Models
 {
-    public static class Constants
+    public static class SensorAlertsConstants
     {
         public const string SENSOR_PARAM_NAME = "parameter_name";
 

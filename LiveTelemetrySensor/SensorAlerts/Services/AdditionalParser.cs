@@ -1,8 +1,8 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models;
+﻿using LiveTelemetrySensor.Common.Services.Network;
+using LiveTelemetrySensor.SensorAlerts.Models;
 using LiveTelemetrySensor.SensorAlerts.Models.Dtos;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
 using LiveTelemetrySensor.SensorAlerts.Services.Extentions;
-using LiveTelemetrySensor.SensorAlerts.Services.Network;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PdfExtractor.Models.Requirement;
@@ -36,9 +36,9 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
 
                 return JObjSensors.Select(JObjSensor =>
                 {
-                    string parameterName = JObjSensor.NullSafeIndexing(Constants.SENSOR_PARAM_NAME).ToString();
-                    JObject requirementParam = (JObject) JObjSensor.NullSafeIndexing(Constants.REQUIREMENT_PARAM_NAME);
-                    JObject? duration = (JObject?)JObjSensor[Constants.DURATION_PARAM_NAME];
+                    string parameterName = JObjSensor.NullSafeIndexing(SensorAlertsConstants.SENSOR_PARAM_NAME).ToString();
+                    JObject requirementParam = (JObject) JObjSensor.NullSafeIndexing(SensorAlertsConstants.REQUIREMENT_PARAM_NAME);
+                    JObject? duration = (JObject?)JObjSensor[SensorAlertsConstants.DURATION_PARAM_NAME];
                     var sensor = new SensorRequirement(
                         parameterName,
                         requirementParam.ParseAsRequirement(),

@@ -1,4 +1,4 @@
-﻿using LiveTelemetrySensor.Common.Extentions;
+﻿using LiveTelemetrySensor.Common.Services.Extentions;
 using LiveTelemetrySensor.Mongo.Models;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;

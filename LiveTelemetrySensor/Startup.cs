@@ -19,6 +19,8 @@ using System.Text;
 using System;
 using Microsoft.AspNetCore.Authorization;
 using AuthService.Middlewares.Extentions;
+using LiveTelemetrySensor.Common.Services.Network;
+
 
 namespace LiveTelemetrySensor
 {
@@ -88,7 +90,7 @@ namespace LiveTelemetrySensor
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseTokenMessage();
+            app.UseTokenMiddlewares();
             app.UseHttpsRedirection();
             app.UseCors("CorsPolicy");
 

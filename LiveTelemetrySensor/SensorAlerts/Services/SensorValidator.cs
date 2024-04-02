@@ -1,8 +1,8 @@
-﻿using LiveTelemetrySensor.SensorAlerts.Models.Enums;
+﻿using LiveTelemetrySensor.Common.Services.Network;
+using LiveTelemetrySensor.SensorAlerts.Models.Enums;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor;
 using LiveTelemetrySensor.SensorAlerts.Models.LiveSensor.ValidationResults;
 using LiveTelemetrySensor.SensorAlerts.Models.SensorDetails;
-using LiveTelemetrySensor.SensorAlerts.Services.Network;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

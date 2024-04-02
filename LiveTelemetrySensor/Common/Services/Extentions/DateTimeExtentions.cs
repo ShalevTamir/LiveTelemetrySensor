@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LiveTelemetrySensor.Common.Extentions
+namespace LiveTelemetrySensor.Common.Services.Extentions
 {
     public static class DateTimeExtentions
     {
