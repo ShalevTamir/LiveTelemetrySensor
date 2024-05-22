@@ -45,6 +45,11 @@ namespace LiveTelemetrySensor.SensorAlerts.Models.LiveSensor
 
         }
 
+        public bool hasParameterSensor(string sensorName)
+        {
+            return _parameterLiveSensors.ContainsKey(sensorName);
+        }
+
         public ParameterLiveSensor? GetParameterLiveSensor(string sensorName)
         {
             return _parameterLiveSensors.ContainsKey(sensorName) ? _parameterLiveSensors[sensorName] : null;

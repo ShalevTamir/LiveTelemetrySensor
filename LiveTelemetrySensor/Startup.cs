@@ -89,7 +89,7 @@ namespace LiveTelemetrySensor
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            
             app.UseTokenMiddlewares();
             app.UseHttpsRedirection();
             app.UseCors("CorsPolicy");

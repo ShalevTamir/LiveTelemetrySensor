@@ -66,7 +66,6 @@ namespace LiveTelemetrySensor.Redis.Services
 
         //Checks if the requirement has been met for the duration - iterates over all cached values
         //If a duration requirement already met - only checks current latest param value to match requirement
-        // sometimes delete all samples?
         private RequirementStatus UpdateRequirementStatus(SensorRequirement sensorRequirement)
         {
             ReuploadToRedis(sensorRequirement);

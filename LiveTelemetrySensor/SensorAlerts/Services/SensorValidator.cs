@@ -35,6 +35,17 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
             }
             
         }
+        public SensorValidationResult CheckParameterSensorExists(string sensorName) 
+        {
+            if (_sensorsContainer.hasParameterSensor(sensorName))
+            {
+                return new ValidSensorResult();
+            }
+            else
+            {
+                return new DoesntExistResult(sensorName);
+            }
+        }
         public SensorValidationResult SensorNameValidation(string sensorName)
         {
             return CheckDuplicateSensor(sensorName);

@@ -32,7 +32,7 @@ namespace LiveTelemetrySensor.SensorAlerts.Services
         {
             foreach (var teleParam in parameters)
             {
-                var validation = _sensorValidator.CheckSensorExists(teleParam.Name);
+                var validation = _sensorValidator.CheckParameterSensorExists(teleParam.Name);
                 if (validation.IsValid())
                 {
                     ParameterLiveSensor parameterSensor = _sensorsContainer.GetParameterLiveSensor(teleParam.Name);
